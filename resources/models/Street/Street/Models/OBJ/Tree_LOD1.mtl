@@ -1,0 +1,143 @@
+newmtl Awning_LargeSG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Awning_A.tga
+Ni 1.00
+newmtl Building_Bottom_Corner_A_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Plaster_A.tga
+Ni 1.00
+newmtl Building_Bottom_Corner_B_LOD0SG2
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd StoreWindow_A.tga
+Ni 1.00
+newmtl Building_FloorSG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd WoodFloor_A.tga
+Ni 1.00
+newmtl Building_FloorSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Ceiling_A.tga
+Ni 1.00
+newmtl Building_LevelModularShell_Bottom_LOD0SG1
+illum 4
+Kd 0.19 0.19 0.19
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Building_Mid_Corner_A_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Brick_A.tga
+Ni 1.00
+newmtl Building_Mid_Corner_A_LOD0SG1
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Building_Mid_Corner_B_LOD0SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Concrete_A.tga
+Ni 1.00
+newmtl Building_Mid_Corner_B_LOD0SG2
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Window_A.tga
+bump Window_N.tga -bm 1
+Ni 1.00
+newmtl Building_Mid_Corner_B_LOD0SG4
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd BusStopGlass_A.tga
+Ni 1.00
+newmtl BusStop_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd BusStop_A.tga
+Ni 1.00
+newmtl FireHydrant_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd FireHydrant_A.tga
+Ni 1.00
+newmtl NewspaperBox_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd NewspaperBox_VarA_A.tga
+Ni 1.00
+newmtl NewspaperBox_LOD0SG1
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl Sidewalk_CornerSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Sidewalk_A.tga
+Ni 1.00
+newmtl Sign_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Sign_A.tga
+Ni 1.00
+newmtl Sign_LOD0SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd ChalkWriting.tga
+Ni 1.00
+newmtl Tree_LOD0SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd Bark_A.tga
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 11.60
+newmtl Tree_LOD0SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 1.00 1.00 1.00
+Tf 1.00 1.00 1.00
+map_Kd Tree_A.tga
+bump Tree_N.tga -bm 1
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns 11.60
