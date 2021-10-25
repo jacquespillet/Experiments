@@ -5,6 +5,7 @@
 #include <assimp/postprocess.h>     // Post processing flags
 #include <assimp/material.h>
 #include <sstream>
+#include <fstream>
 
 GL_Mesh MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
     std::vector<uint32_t> triangles;
@@ -207,4 +208,59 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
   
         OutMeshes->push_back(gl_mesh);
     }
+}
+
+void CreateComputeShader(std::string filename, GLint *programShaderObject)
+{
+    std::ifstream t(filename);
+    std::stringstream shaderBuffer;
+    shaderBuffer << t.rdbuf();
+    std::string shaderSrc = shaderBuffer.str();
+    GLint shaderObject;
+
+    t.close();
+	//make array to pointer for source code (needed for opengl )
+	const char* vsrc[1];
+	vsrc[0] = shaderSrc.c_str();
+	
+	//compile vertex and fragment shaders from source
+	shaderObject = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(shaderObject, 1, vsrc, NULL);
+	glCompileShader(shaderObject);
+	
+	//link vertex and fragment shader to create shader program object
+	*programShaderObject = glCreateProgram();
+	glAttachShader(*programShaderObject, shaderObject);
+	glLinkProgram(*programShaderObject);
+	std::cout << "Shader:Compile: checking shader status" << std::endl;
+	
+	//Check status of shader and log any compile time errors
+	int linkStatus;
+	glGetProgramiv(*programShaderObject, GL_LINK_STATUS, &linkStatus);
+	if (linkStatus != GL_TRUE) 
+	{
+		char log[5000];
+		int lglen; 
+		glGetProgramInfoLog(*programShaderObject, 5000, &lglen, log);
+		std::cerr << "Shader:Compile: Could not link program: " << std::endl;
+		std::cerr << log << std::endl;
+		
+        glGetShaderInfoLog(shaderObject, 5000, &lglen, log);
+		std::cerr << "vertex shader log:\n" << log << std::endl;
+		
+        glDeleteProgram(*programShaderObject);
+		*programShaderObject = 0;
+	}
+	else
+	{
+		std::cout << "Shader:Compile: compile success " << std::endl;
+	}
+}
+
+
+void BindSSBO(GLuint shader, GLuint ssbo, std::string name, GLuint bindingPoint)
+{
+	glUseProgram(shader);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, ssbo);
 }

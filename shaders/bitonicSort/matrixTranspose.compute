@@ -1,0 +1,43 @@
+#version 430 core
+#define BITONIC_BLOCK_SIZE 512
+#define TRANSPOSE_BLOCK_SIZE 16
+
+layout (local_size_x = TRANSPOSE_BLOCK_SIZE, local_size_y = TRANSPOSE_BLOCK_SIZE, local_size_z = 1) in;
+
+
+uniform uint _Level;
+uniform uint _LevelMask;
+uniform uint _Width;
+uniform uint _Height;
+
+layout (std430, binding = 10) buffer InputBuf {
+   uint input [];
+};
+layout (std430, binding = 11) buffer DataBuf {
+   uint data [];
+};
+
+//Shared buffer between the group threads, of size of the group
+shared uint transpose_shared_data[TRANSPOSE_BLOCK_SIZE * TRANSPOSE_BLOCK_SIZE];
+
+void main() {
+   //First transpose : 
+   //    Input is the 1024 bitonic sequences in order
+   //    width = 512
+   //    Height = 16
+   //    Dispatch(32, 1)
+   
+   //gl_LocalInvocationIndex : Thread index inside the group as uint (0, 0 - 16, 16)
+   //gl_GlobalInvocationID : Thread index out of all the threads of all groups ([0, 0] - [512, 16])
+    
+    //Get the current thread's corresponding value and store it into the shared memory
+   transpose_shared_data[gl_LocalInvocationIndex] = input[gl_GlobalInvocationID.y * _Width + gl_GlobalInvocationID.x];
+
+   //Wait till all threads wrote into shared memory
+   barrier();
+   
+   //New position in the buffer
+   uvec2 XY = gl_GlobalInvocationID.yx - gl_LocalInvocationID.yx + gl_LocalInvocationID.xy;
+   
+   data[XY.y * _Height + XY.x] = transpose_shared_data[gl_LocalInvocationID.x * TRANSPOSE_BLOCK_SIZE + gl_LocalInvocationID.y];
+}

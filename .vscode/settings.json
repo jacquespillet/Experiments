@@ -62,6 +62,7 @@
         "clocale": "cpp",
         "compare": "cpp",
         "iterator": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "cinttypes": "cpp"
     }
 }

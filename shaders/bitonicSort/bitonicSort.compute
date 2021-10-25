@@ -1,0 +1,79 @@
+#version 430 core
+#define BITONIC_BLOCK_SIZE 512
+#define TRANSPOSE_BLOCK_SIZE 16
+
+layout (local_size_x = BITONIC_BLOCK_SIZE, local_size_y = 1, local_size_z = 1) in;
+
+
+//--------------------------------------------------------------------------------------
+// Constant Buffers
+//--------------------------------------------------------------------------------------
+
+uniform uint _Level;
+uniform uint _LevelMask;
+
+layout (std430, binding = 10) buffer DataBuf {
+   uint data [];
+};
+
+//--------------------------------------------------------------------------------------
+// Bitonic Sort Compute Shader
+//--------------------------------------------------------------------------------------
+
+shared uint shared_data[512];
+
+
+void main() {
+    //Invocation info : 
+    //At first step  of algorithm, the shader is dispatched 16 * 512 groups.
+    //Each thread corresponds to one entry in the buffer to sort.
+    //Each group builds a 512 buffer of shared memory
+
+    //gl_GlobalInvocationID : Thread index out of all the threads of all groups (0 - 8192)
+    //gl_LocalInvocationIndex : Thread index inside the group as uint (0 - 512)
+
+    // Stores the number it's looking at in the shared memory of the group
+    shared_data[gl_LocalInvocationIndex] = data[gl_GlobalInvocationID.x];
+
+    //Wait till all the threads in the group wrote into the shared buffer
+    barrier();
+
+    //Passes : for stage N, there's N passes
+    //For stage N, the distance starts at 2^(N-1) for the first pass, and is halved at each pass --> 2^(N-P)
+
+    //Levels : 2^N, N being the stage : 
+    //  1  2  3  4   5   6   7    8    9
+    //  2, 4, 8, 16, 32, 64, 128, 256, 512
+
+    //Example of loop unfolded :
+    //Stage 5, Level = 32
+    //Pass : 1   2   3   4   5 
+    // J   : 16  8   4   2   1
+    for (uint j = _Level >> 1; j > 0; j >>= 1) {
+      //Stage 5, Pass 1 : distance = 16
+      //for local thread 27
+      //gl_LocalInvocationIndex & ~j = 27 - 16 = 11;
+      //gl_LocalInvocationIndex | j = 27
+
+      uint firstIndex = gl_LocalInvocationIndex & ~j;
+      uint secondIndex = gl_LocalInvocationIndex | j;
+      
+      //Is the element at the first index is lower than the element at distance j forward ? 
+      bool isAscending = (shared_data[firstIndex] <= shared_data[secondIndex]);
+      bool isInSecondHalf = bool(_LevelMask & gl_GlobalInvocationID.x);
+      
+      //If the order is ascending and we have in the second half, we need to swap. 
+      //Second half of bitonic sequences must be descending
+      uint result = (isAscending == isInSecondHalf) ? 
+          shared_data[gl_LocalInvocationIndex ^ j] : shared_data[gl_LocalInvocationIndex];
+
+      barrier();
+      //Do the swap, wait until all threads have swapped
+      shared_data[gl_LocalInvocationIndex] = result;
+
+      barrier();
+    }
+
+    // Store result back into the main buffer
+    data[gl_GlobalInvocationID.x] = shared_data[gl_LocalInvocationIndex]; 
+}

@@ -116,7 +116,7 @@ void main()
         vec3 finalLPVRadiance = (f_indirectAttenuation / PI)*  max( lpvIntensity, 0 ) ;
         GI = diffuseColor.xyz * finalLPVRadiance * GIIntensity;
     }
-	// outputColor = vec4(diffuseReflection, 1);
+	
     {
         outputColor = vec4(
                             diffuseReflection 

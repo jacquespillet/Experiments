@@ -15,6 +15,10 @@
 #include "Demos/RSM/RSM.hpp"
 #include "Demos/ISM/ISM.hpp"
 #include "Demos/LPV/LPV.hpp"
+#include "Demos/SH/SH.hpp"
+#include "Demos/NBodies/NBodies.hpp"
+#include "Demos/BitonicSort/BitonicSort.hpp"
+#include "Demos/Template/Template.hpp"
 
 
 
@@ -53,6 +57,30 @@ struct DemoManager {
             break;
         case 4:
             demo = new LPV;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 5:
+            demo = new SH;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 6:
+            demo = new BitonicSort;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 7:
+            demo = new NBodies;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 8:
+            demo = new Template;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -186,7 +214,7 @@ public:
 
     void Start() {
         demoManager={};
-        ImVec4 clear_color = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
+        ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
         // Main loop
         while (!glfwWindowShouldClose(window))
@@ -285,6 +313,22 @@ private:
             if(ImGui::Button("Light Propagation Volumes", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(4);
+            }
+            if(ImGui::Button("Spherical Harmonics viewer", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(5);
+            }
+            if(ImGui::Button("Bitonic Sort", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(6);
+            }
+            if(ImGui::Button("N-Bodies", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(7);
+            }
+            if(ImGui::Button("Template", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(8);
             }
 
             demoManager.RenderGUI();

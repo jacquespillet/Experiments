@@ -516,8 +516,7 @@ void LPV::Load() {
     }
 
     size = bbMax - bbMin;
-    std::cout << glm::to_string(bbMin) << std::endl;
-
+    
     
     lightDirection = glm::normalize(glm::vec3(0, 0.94, 0.320));
 
