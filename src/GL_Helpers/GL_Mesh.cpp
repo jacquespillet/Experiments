@@ -186,6 +186,15 @@ void GL_Mesh::RecalculateMatrices() {
     invModelMatrix = glm::inverse(modelMatrix);
 }
 
+void GL_Mesh::UpdateGPUBuffers()
+{
+    glBindVertexArray(vertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GL_Mesh::Vertex), (uint8_t*)&vertices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);        //Unbind VAO
+    glBindVertexArray(0);
+}
+
 void GL_Mesh::Unload(){ 
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteBuffers(1, &elementBuffer);

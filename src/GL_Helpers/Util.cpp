@@ -210,6 +210,42 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
     }
 }
 
+GL_Mesh *PlaneMesh(float sizeX, float sizeY, int subdivX, int subdivY)
+{
+    std::vector<unsigned int> triangles;
+    std::vector<GL_Mesh::Vertex> vertices;   
+    
+    float xOffset = sizeX / (float)subdivX;
+    float yOffset = sizeY / (float)subdivY;
+
+    int numAdded=0;
+    for(float y=-sizeX/2, yInx=0; yInx<subdivY; y+=yOffset, yInx++) {
+        for(float x=-sizeY/2, xInx=0; xInx<subdivX; x+= xOffset, xInx++) {
+            vertices.push_back({
+                glm::vec3(x, 0, y),
+                glm::vec3(0, 1, 0),
+                glm::vec3(1, 0, 0),
+                glm::vec3(0, 0, 1),
+                glm::vec2(0,0)
+            });
+
+            if(xInx < subdivX-1 && yInx < subdivY-1) {
+                triangles.push_back(numAdded);
+                triangles.push_back(numAdded + subdivX + 1);
+                triangles.push_back(numAdded + subdivX);
+                
+                triangles.push_back(numAdded);
+                triangles.push_back(numAdded + 1);
+                triangles.push_back(numAdded + subdivX + 1);
+            }
+            numAdded++;
+        }
+    }
+
+    GL_Mesh *gl_mesh = new GL_Mesh(vertices, triangles);
+    return gl_mesh;
+}
+
 void CreateComputeShader(std::string filename, GLint *programShaderObject)
 {
     std::ifstream t(filename);

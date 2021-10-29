@@ -63,6 +63,8 @@
         "compare": "cpp",
         "iterator": "cpp",
         "random": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "complex": "cpp",
+        "valarray": "cpp"
     }
 }

@@ -47,6 +47,8 @@ public:
     glm::vec3 GetMaxBoundingBox();
     void RecalculateBoundingBox();
 
+    void UpdateGPUBuffers();
+
     glm::mat4 modelMatrix;
     glm::mat4 invModelMatrix;
 

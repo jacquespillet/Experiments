@@ -18,6 +18,8 @@
 #include "Demos/SH/SH.hpp"
 #include "Demos/NBodies/NBodies.hpp"
 #include "Demos/BitonicSort/BitonicSort.hpp"
+#include "Demos/FFT/FFT.hpp"
+#include "Demos/Ocean_FFT/Ocean_FFT.hpp"
 #include "Demos/Template/Template.hpp"
 
 
@@ -80,11 +82,23 @@ struct DemoManager {
             demo->Load();
             break;
         case 8:
-            demo = new Template;
+            demo = new FFT;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
             break;
+        case 9:
+            demo = new Ocean_FFT;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        // case 9:
+        //     demo = new Template;
+        //     demo->windowWidth = windowWidth;
+        //     demo->windowHeight = windowHeight;
+        //     demo->Load();
+        //     break;
         default:
             break;
         }
@@ -253,7 +267,8 @@ public:
 
             demoManager.windowWidth = display_w; 
             demoManager.windowHeight = display_h; 
-           
+            glDepthMask(GL_TRUE);
+	
 			demoManager.Render();
 
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -326,10 +341,18 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(7);
             }
-            if(ImGui::Button("Template", ImVec2(100, 20))) {
+            if(ImGui::Button("Fast Fourier Transform", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(8);
             }
+            if(ImGui::Button("Ocean FFT", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(9);
+            }
+            // if(ImGui::Button("Template", ImVec2(100, 20))) {
+            //     demoManager.ClearDemo();
+            //     demoManager.LoadDemo(8);
+            // }
 
             demoManager.RenderGUI();
 
