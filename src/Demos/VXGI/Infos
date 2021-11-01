@@ -1,0 +1,14 @@
+Algorithm : 
+
+Voxelize the world using the technique from OpenGLInsights
+Mipmap it
+
+trace cones from the fragment shader.
+each step of the tracing uses a higher level of mipmap.
+Use front back compositing. It also allows to compute a good estimation of occlusion.
+If the alpha value is high, it means that we occluded a lot of objects. If it's dark, the cone was shot in the void --> no occlusion
+
+Sources :
+https://www.youtube.com/watch?v=13su6WkDZSw&ab_channel=RevisionDemoparty
+
+https://www.seas.upenn.edu/~pcozzi/OpenGLInsights/OpenGLInsights-SparseVoxelization.pdf

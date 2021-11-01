@@ -1,0 +1,8 @@
+A reflective shadow map is a set of textures that are being rendered from the light point of view.
+It includes a depth texture (Same as a regular shadow map), a position texture, a normal texture and a flux texture.
+
+when lighting a fragment, we can find the position of the fragment in the reflective shadow map.
+We then have access to information about the surrounding geometry and its color.
+We can use this information to apply some of the indirect lighting.
+
+It is very slow because it needs around 400 samples of the RSM for each rendered pixel.

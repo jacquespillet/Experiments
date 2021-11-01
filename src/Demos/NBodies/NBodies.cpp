@@ -93,22 +93,6 @@ void NBodies::RenderGUI() {
     ImGui::End();
 }
 
-float RandomFloat(float min, float max)
-{
-	float Result = (float)std::rand() / (float)RAND_MAX;
-	float range = max - min;
-	Result *= range;
-	Result += min;
-	return Result;
-}
-
-int RandomInt(int min, int max)
-{
-	float ResultF = RandomFloat((float)min, (float)max);
-	int Result = (int)ResultF;
-	return Result;
-}
-
 void NBodies::Reset()
 {
 	particles = std::vector<particle>(bufferSize);
@@ -401,6 +385,10 @@ void NBodies::Unload() {
 	glDeleteProgram(nbodiesShader);
 	glDeleteBuffers(1, &particleBuffer[0]);
 	glDeleteBuffers(1, &particleBuffer[1]);
+	pointsShader.Unload();
+	glDeleteVertexArrays(1, &pointsVAO);
+	glDeleteBuffers(1, &pointsVBO);
+	texture.Unload();
 }
 
 

@@ -1,0 +1,44 @@
+layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
+
+uniform float dt;
+uniform vec3 externalForce;
+uniform int attract;
+
+
+void main() {
+    ivec3 gridPosition = ivec3(gl_GlobalInvocationID);
+    if(gridPosition.x > gridDim.x -1 || gridPosition.y > gridDim.y -1 || gridPosition.z > gridDim.z -1) return;
+    uint index = getGridFlatIndex(gridPosition);
+
+    //Save the old velocity before updating it
+    cell[index].oldVel = cell[index].vel;
+
+    //Add external force to the cell
+    if (gridPosition.y < gridDim.y - 1 && gridPosition.z < gridDim.z - 1)
+        cell[index].vel.x += externalForce.x * dt;
+    if (gridPosition.x < gridDim.x - 1 && gridPosition.z < gridDim.z - 1)
+        cell[index].vel.y += externalForce.y * dt;
+    if (gridPosition.x < gridDim.x - 1 && gridPosition.y < gridDim.y - 1)
+        cell[index].vel.z += externalForce.z * dt;
+
+    if(attract>0)
+    {
+        // vec3 attractor= vec3(0.5, 0.8, -0.5);
+        // vec3 direction = 
+        cell[index].vel.y += sin(getWorldCoord(gridPosition, ivec3(0)).x * 2) * 10 * dt;
+        cell[index].vel.x += cos(getWorldCoord(gridPosition, ivec3(0)).y * 2) * 10 * dt;
+    }
+
+    // wacky winds
+    
+    //Sets the velocity to null on the boundaries
+    if (gridPosition.x == 0 || gridPosition.x == gridDim.x - 1) {
+        cell[index].vel.x = 0;
+    }
+    if (gridPosition.y == 0 || gridPosition.y == gridDim.y - 1) {
+        cell[index].vel.y = 0;
+    }
+    if (gridPosition.z == 0 || gridPosition.z == gridDim.z - 1) {
+        cell[index].vel.z = 0;
+    }
+}

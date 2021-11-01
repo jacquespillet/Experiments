@@ -1,0 +1,26 @@
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+void main() {
+    uint flatIndex = gl_GlobalInvocationID.x;
+
+    //For each element in the grid
+    if (transfer[flatIndex].isFluid)
+        cell[flatIndex].type = FLUID;
+
+    //Sets the velocity of the cell
+    if (transfer[flatIndex].weight_u != 0)
+        cell[flatIndex].vel.x = (transfer[flatIndex].u) / (transfer[flatIndex].weight_u);
+    if (transfer[flatIndex].weight_v != 0)
+        cell[flatIndex].vel.y = (transfer[flatIndex].v) / (transfer[flatIndex].weight_v);
+    if (transfer[flatIndex].weight_w != 0)
+        cell[flatIndex].vel.z = (transfer[flatIndex].w) / (transfer[flatIndex].weight_w);
+
+    //Resets the transfer grid
+    transfer[flatIndex].u = 0;
+    transfer[flatIndex].v = 0;
+    transfer[flatIndex].w = 0;
+    transfer[flatIndex].weight_u = 0;
+    transfer[flatIndex].weight_v = 0;
+    transfer[flatIndex].weight_w = 0;
+    transfer[flatIndex].isFluid = false;
+}

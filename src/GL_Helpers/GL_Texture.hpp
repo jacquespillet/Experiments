@@ -55,7 +55,11 @@ public:
         stbi_image_free(data);
         glBindTexture(GL_TEXTURE_2D, 0);
         loaded = true;        
-    
+    }
+
+    void Unload()
+    {
+        glDeleteTextures(1, &glTex);
     }
 
     GLuint glTex;

@@ -1,0 +1,36 @@
+A bitonic sequence is a sequence of a size which is a power of 2.
+The first part of the sequence is ascending, the second part is descending.
+Each part is usually the same size, although it can vary.
+
+The algorithm is executed in log2(N) steps.
+The step k has k passes.
+for each pass, we have a distance and a direction.
+the distance at the first pass of step n is dist = 2^step.
+Step 0 : dist = 1;
+Step 1 : dist = 2;
+Step 2 : dist = 4;
+Step 3 : dist = 8;
+
+we compare each number with the number at distance k in direction d.
+
+TODO(Jacques): 
+- Watch video and complete that
+- Implement the sort on a visible texture on screen to get a sense of how it works
+- Explain it here
+
+Sources
+
+Very good explanation of the algorithm with implementation on CPU : 
+https://www.youtube.com/watch?v=w544Rn4KC8I
+
+Great introduction to GPU sorting, but done in fragment shaders :
+https://developer.nvidia.com/gpugems/gpugems2/part-vi-simulation-and-numerical-algorithms/chapter-46-improved-gpu-sorting
+
+Implementation of bitonic sort in HLSL compute :
+https://github.com/hiroakioishi/UnityGPUBitonicSort
+
+Infos on Compute bitonic sort :
+https://stackoverflow.com/questions/56762815/gpu-bitonic-sorting-is-10-times-slower-than-stdsort
+
+Tutorial for implementing it
+https://poniesandlight.co.uk/reflect/bitonic_merge_sort/

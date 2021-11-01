@@ -1,0 +1,88 @@
+
+DFT : 
+Simple equation : 
+X(k) = sum(n=0, n=N-1) f(n) * exp(i * -2PI * k/N * n)
+
+Basically wraps a function f around a circle.
+
+Run around a circle : 
+exp(i * -2PI * t) goes around a circle
+euler formula shows that exp(i * phi) = cos(phi) + i * sin(phi)
+t is the speed at which we circle around.
+
+in DFT, we set the speed to be k/N * n.
+We also multiply the magnitude of the complex number by the value of the function itself (f(n)).
+
+Calculating the sum of that thing computes the center of mass of this wrapped around a circle function.
+for a given K, the higher the magnitude of the center of mass, the higher frequencies of K are in the function.
+
+FFT : 
+
+We can break the sum into 2 different sums : one with the even indices and another one with odd indices.
+TODO(Jacques): Elaborate on that with the books
+
+Because of the rotational properties of the complex exponential
+F(k  ) = F_even(k) + F_odd(k) * W^k
+F(k+u) = F_even(k) - F_odd(k) * W^k
+So we only need to compute the frequencies until N/2 and retrieve the values for k > N/2
+
+We can do a recursion and split the arrays in odd/even until we only have one element left.
+It works because it turns out that the frequency of a single number is the number itself 
+(file:///C:/Users/jacqu/Google%20Drive/Projets%20persos/Books/Signal/Guide_to_Digital_Signal_Process.pdf p267)
+
+GPU FFT :
+We use a butterfly texture to store all the operations needed for each stage of the FFT computation.
+There are log2(N) steps in a butterfly diagram.
+The texture holds each input point in the Y, and each step in the X.
+The size of the texture is (log2(N), N)
+
+For each step, we need to store the twiddle factor of the current step. We then store the input and output indices of the butterfly operation.
+The twiddleFactor is of the form exp(-i * 2PI * k) / N
+
+[SOURCES]
+
+Best introduction to Fourier transform :
+https://www.youtube.com/watch?v=spUNpyF58BY&ab_channel=3Blue1Brown
+Good introduction on how to actually implement it :
+https://www.youtube.com/watch?v=mkGsMWi_j4Q&ab_channel=SimonXu
+Same, good explanation of implementation of DFT :
+https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/simulating-odean-waves/introduction-discrete-fourier-transform
+Implementation of DFT :
+https://rosettacode.org/wiki/Discrete_Fourier_transform
+
+Full book on FT :
+https://see.stanford.edu/materials/lsoftaee261/book-fall-07.pdf
+
+Course on FFT and polynomials :
+https://www.youtube.com/watch?v=iTMn0Kt18tg&t=1s&ab_channel=MITOpenCourseWare
+
+FFT :
+https://www.youtube.com/watch?v=htCj9exbGo0&t=502s&ab_channel=SimonXu
+
+Good explanations in these books :
+p 424 in file:///C:/Users/jacqu/Google%20Drive/Projets%20persos/Books/Signal/Gonzalez,%20Rafael%20C._%20Woods,%20Richard%20E.%20-%20Digital%20image%20processing%20(2018,%20Pearson)%20-%20libgen.lc.pdf
+p267 file:///C:/Users/jacqu/Google%20Drive/Projets%20persos/Books/Signal/Guide_to_Digital_Signal_Process.pdf
+
+Implementation of FFT in python : 
+https://towardsdatascience.com/fast-fourier-transform-937926e591cb
+Implementation of FFT in c++
+https://rosettacode.org/wiki/Fast_Fourier_transform#C.2B.2B
+Notes on DFT / FFT :
+http://paulbourke.net/miscellaneous/dft/
+
+GPU :
+Thesis with a LOT of very useful information on how to implement it on the GPU
+https://tore.tuhh.de/bitstream/11420/1439/1/GPGPU_FFT_Ocean_Simulation.pdf
+
+Other very complete thesis :
+https://www.cg.tuwien.ac.at/research/publications/2018/GAMPER-2018-OSG/GAMPER-2018-OSG-thesis.pdf
+
+Ocean :
+https://github.com/deiss/fftocean/tree/master/src/fft
+https://github.com/dli/waves
+https://github.com/gasgiant/FFT-Ocean
+https://tore.tuhh.de/bitstream/11420/1439/1/GPGPU_FFT_Ocean_Simulation.pdf
+https://www.researchgate.net/publication/264839743_Simulating_Ocean_Water
+https://developer.download.nvidia.com/assets/gameworks/downloads/regular/events/cgdc15/CGDC2015_ocean_simulation_en.pdf
+https://github.com/deiss/fftocean
+https://www.youtube.com/watch?v=kGEqaX4Y4bQ&ab_channel=JumpTrajectory

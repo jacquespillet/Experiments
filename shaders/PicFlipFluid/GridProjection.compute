@@ -1,0 +1,135 @@
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+uniform float dt;
+void Divergence() {
+    ivec3 gridPosition = ivec3(gl_WorkGroupID);
+    uint index = getGridFlatIndex(gridPosition);
+
+    cell[index].rhs = 0;
+
+    if (cell[index].type != FLUID) {
+        return;
+    }
+
+    //Here we store the negative divergence magnitude
+
+    //Divergence formula :
+    // ((vel[x+1, y, z] - vel[x, y, z]) + (vel[x, y+1, z] - vel[x, y, z]) + (vel[x, y, z+1] - vel[x, y, z])) / cellSize
+
+    //Calculate divergence
+    if (gridPosition.x < gridDim.x - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(1, 0, 0));
+        cell[index].rhs -= (cell[index1].vel.x - cell[index].vel.x) / cellSize.x; 
+    }
+    if (gridPosition.y < gridDim.y - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(0, 1, 0));
+        cell[index].rhs -= (cell[index1].vel.y - cell[index].vel.y) / cellSize.y; 
+    }
+    if (gridPosition.z < gridDim.z - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(0, 0, 1));
+        cell[index].rhs -= (cell[index1].vel.z - cell[index].vel.z) / cellSize.z; 
+    }
+
+    //Set divergence at bounds
+    if (gridPosition.x == 0) {
+        cell[index].rhs -= cell[index].vel.x / cellSize.x;
+    }
+    if (gridPosition.y == 0) {
+        cell[index].rhs -= cell[index].vel.y / cellSize.y;
+    }
+    if (gridPosition.z == 0) {
+        cell[index].rhs -= cell[index].vel.z / cellSize.z;
+    }
+    if (gridPosition.x == gridDim.x - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(1, 0, 0));
+        cell[index].rhs += cell[index1].vel.x / cellSize.x;
+    }
+    if (gridPosition.y == gridDim.y - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(0, 1, 0));
+        cell[index].rhs += cell[index1].vel.y / cellSize.y;
+    }
+    if (gridPosition.z == gridDim.z - 1) {
+        uint index1 = getGridFlatIndex(gridPosition + ivec3(0, 0, 1));
+        cell[index].rhs += cell[index1].vel.z / cellSize.z;
+    }
+}
+
+
+
+
+void A() {
+    ivec3 gridPosition = ivec3(gl_WorkGroupID);
+    uint index = getGridFlatIndex(gridPosition);
+
+    cell[index].pressure = 0;
+    
+    
+    cell[index].aDiag = 0;
+    cell[index].aX = 0;
+    cell[index].aY = 0;
+    cell[index].aZ = 0;
+
+    if (cell[index].type != FLUID) {
+        return;
+    }
+
+    float scale = dt / (density * cellSize.x * cellSize.x);
+    if (gridPosition.x > 0) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(-1, 0, 0));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+        }
+    }
+    if (gridPosition.x < gridDim.x - 2) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(1, 0, 0));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+            cell[index].aX = -scale;
+        } 
+        else if (cell[j].type == AIR) {
+            cell[index].aDiag += scale;
+        }
+    }
+    if (gridPosition.y > 0) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(0, -1, 0));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+        }
+    }
+    if (gridPosition.y < gridDim.y - 2) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(0, 1, 0));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+            cell[index].aY = -scale;
+        } 
+        else if (cell[j].type == AIR) {
+            cell[index].aDiag += scale;
+        }
+    }
+    if (gridPosition.z > 0) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(0, 0, -1));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+        }
+    }
+    if (gridPosition.z < gridDim.z - 2) {
+        uint j = getGridFlatIndex(gridPosition + ivec3(0, 0, 1));
+        if (cell[j].type == FLUID) {
+            cell[index].aDiag += scale;
+            cell[index].aZ = -scale;
+        } 
+        else if (cell[j].type == AIR) {
+            cell[index].aDiag += scale;
+        }
+    }
+}
+
+
+
+void main() {
+    //Calculate divergence at cell
+    Divergence();
+
+    //Calculate A matrix elements
+    A();
+}

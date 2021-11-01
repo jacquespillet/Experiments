@@ -232,7 +232,8 @@ void VXGI::Render() {
     
     //glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
 
     for(int i=0; i<Meshes.size(); i++)
     {

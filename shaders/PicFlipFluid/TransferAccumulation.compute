@@ -1,0 +1,72 @@
+#extension GL_NV_shader_atomic_float : enable
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+uniform int startIndex;
+
+void scatter_part(ivec3 coord, vec3 weights, vec3 vel) {
+    int index = getGridFlatIndex(coord);
+    float weight = weights.x * weights.y * weights.z;
+    
+    if (vel.x != 0) {
+        atomicAdd(transfer[index].u, vel.x * weight);
+        atomicAdd(transfer[index].weight_u, weight);
+    }
+    if (vel.y != 0) {
+        atomicAdd(transfer[index].v, vel.y * weight);
+        atomicAdd(transfer[index].weight_v, weight);
+    }
+    if (vel.z != 0) {
+        atomicAdd(transfer[index].w, vel.z * weight);
+        atomicAdd(transfer[index].weight_w, weight);
+    }
+}
+
+void scatter_vel(uint index, ivec3 offset) {
+    //If in first half, returns previous, if its second half, returns current.
+	ivec3 baseCoord = getGridCoord(particle[index].pos, -offset);
+    
+    //Add half the size of a cell to the base coord to get center of cell
+    vec3 centerOfCell = getWorldCoord(baseCoord, offset);
+    
+    // normalized weight of the current sample, based on its distance to the center of the base cell
+	// 0.5 --> 1 in the first half, 0 --> 0.5 in the second half
+    vec3 wgt = (particle[index].pos - centerOfCell) / cellSize;
+    
+    //Velocity of the current particle only in the current basis component
+    vec3 comp_vel = vec3(offset) * particle[index].vel;
+
+    //Current cell :
+	// Adds velocity inside the current cell, using current weights    
+    // Adds only the current component's velocity into the transfer grid. 
+    scatter_part(offsetClamped(baseCoord, ivec3(0, 0, 0)), vec3(wgt.x, wgt.y, wgt.z), comp_vel);
+
+	// Scatters it around the 7 neighbouring cells
+	// have to invert the weight for it to be correct. 
+	// If the X weight is low, we are close to the right cell. 
+	// Therefore when adding into the right cell the weight must be high --> inversion
+    scatter_part(offsetClamped(baseCoord, ivec3(1, 0, 0)), vec3(1-wgt.x, wgt.y, wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(0, 1, 0)), vec3(wgt.x, 1-wgt.y, wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(0, 0, 1)), vec3(wgt.x, wgt.y, 1-wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(1, 1, 0)), vec3(1-wgt.x, 1-wgt.y, wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(0, 1, 1)), vec3(wgt.x, 1-wgt.y, 1-wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(1, 0, 1)), vec3(1-wgt.x, wgt.y, 1-wgt.z), comp_vel);
+    scatter_part(offsetClamped(baseCoord, ivec3(1, 1, 1)), vec3(1-wgt.x, 1-wgt.y, 1-wgt.z), comp_vel);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= particle.length()) {
+        return;
+    }
+
+    ivec3 baseCoord = getGridCoord(particle[index].pos, ivec3(0));
+    uint grid_index = getGridFlatIndex(baseCoord);
+    transfer[grid_index].isFluid = true; 
+
+    //We have to accumulate the velocity of each particle inside the grid.
+    //We accumulate each component of the velocity vector separately.
+    scatter_vel(index, ivec3(1, 0, 0));
+    scatter_vel(index, ivec3(0, 1, 0));
+    scatter_vel(index, ivec3(0, 0, 1));
+}

@@ -33,15 +33,22 @@ public :
     void DFT1D(const std::vector<complex>& in, std::vector<complex>& out);
     void iDFT1D(std::vector<complex>& in, std::vector<complex>& out);
     
-    int bufferSize = 1024;
-    int resolution2D = 256;
+    void FFTGPU1D(std::vector<complex>& in, std::vector<complex>& out);
+    void IFFTGPU1D(std::vector<complex>& in, std::vector<complex>& out);
+    
+    void FFTGPU2D(std::vector<complex>& in, std::vector<complex>& out);
+    void IFFTGPU2D(std::vector<complex>& in, std::vector<complex>& out);
     
     void DoDFT1D();
+    void DoIDFT1D();
     
-    void DoFFT();
-    void DoFFT2D();
+    void DoFFT1D();
+    void DoIFFT1D();
 
-    //1d / 2d
+    void DoFFT2D();
+    void DoIFFT2D();
+
+    //false = 1d, true =  2d
     bool mode = false;
 
 private:
@@ -50,23 +57,34 @@ private:
     float elapsedTime;
 
     
-    std::vector<complex> input;
-	std::vector<complex> idftOutput;
 
     //1D
-	std::vector<complex> dftOutput;
-	std::vector<float> inputFloat;
+    std::vector<complex> input1D;
+	std::vector<complex> idftOutput1D;
+	std::vector<complex> dftOutput1D;
 	std::vector<float> inputXAxis;
-	std::vector<float> dftOutputFloat;
-	std::vector<float> idftOutputFloat;
+	std::vector<float> inputFloat1D;
+	std::vector<float> dftOutputFloat1D;
+	std::vector<float> idftOutputFloat1D;
+    int numFrequencies = 10;
+    int size1D = 1024;
     
     //2D
+    std::vector<complex> input2D;
+	std::vector<complex> idftOutput2D;
+	std::vector<complex> dftOutput2D;
+	std::vector<float> inputFloat2D;
+	std::vector<float> dftOutputFloat2D;
+	std::vector<float> idftOutputFloat2D;
     int width, height, nChannels;
     GLuint frequencyTexture;
     GLuint inputTexture;
     GLuint outputTexture;
+    
+
 
 	
         
-    void InitBuffers();
+    void InitBuffers2D();
+    void InitBuffers1D();
 };

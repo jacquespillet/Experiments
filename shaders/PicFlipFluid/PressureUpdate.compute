@@ -1,0 +1,55 @@
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+uniform float dt;
+
+void main() {
+    ivec3 gridPosition = ivec3(gl_WorkGroupID);
+    uint index = getGridFlatIndex(gridPosition);
+
+    // TODO: will break for non-square grids
+    float scale = dt / (density * cellSize.x);
+
+    if (cell[index].type == FLUID || cell[getGridFlatIndex(gridPosition + ivec3(-1, 0, 0))].type == FLUID) {
+        // check solid
+        if (gridPosition.x == 0 || gridPosition.x == gridDim.x - 1) {
+            cell[index].vel.x = 0;
+        } else {
+            cell[index].vel.x -= scale * (cell[index].pressure - cell[getGridFlatIndex(gridPosition + ivec3(-1, 0, 0))].pressure);
+        }
+    } else {
+        cell[index].velUnknown = 1;
+    }
+
+    if (cell[index].type == FLUID || cell[getGridFlatIndex(gridPosition + ivec3(0, -1, 0))].type == FLUID) {
+        // check solid
+        if (gridPosition.y == 0 || gridPosition.y == gridDim.y - 1) {
+            cell[index].vel.y = 0;
+        } else {
+            cell[index].vel.y -= scale * (cell[index].pressure - cell[getGridFlatIndex(gridPosition + ivec3(0, -1, 0))].pressure);
+        }
+    } else {
+        cell[index].velUnknown = 1;
+    }
+
+    if (cell[index].type == FLUID || cell[getGridFlatIndex(gridPosition + ivec3(0, 0, -1))].type == FLUID) {
+        // check solid
+        if (gridPosition.z == 0 || gridPosition.z == gridDim.z - 1) {
+            cell[index].vel.z = 0;
+        } else {
+            cell[index].vel.z -= scale * (cell[index].pressure - cell[getGridFlatIndex(gridPosition + ivec3(0, 0, -1))].pressure);
+        }
+    } else {
+        cell[index].velUnknown = 1;
+    }
+
+    // hack to tempfix bug for demo
+    if (gridPosition.x == gridDim.x - 1) {
+        cell[index].vel.x = cell[getGridFlatIndex(gridPosition + ivec3(-1, 0, 0))].vel.x;
+    }
+    if (gridPosition.y == gridDim.y - 1) {
+        cell[index].vel.y = cell[getGridFlatIndex(gridPosition + ivec3(0, -1, 0))].vel.y;
+    }
+    if (gridPosition.z == gridDim.z - 1) {
+        cell[index].vel.z = cell[getGridFlatIndex(gridPosition + ivec3(0, 0, -1))].vel.z;
+    }
+}

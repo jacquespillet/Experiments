@@ -15,17 +15,6 @@ Ocean_FFT::Ocean_FFT() {
 }
 
 
-float Clamp01(float input)
-{
-	float Result = std::min(1.0f, std::max(0.001f, input));
-	return Result;
-}
-
-float Clamp(float input, float min, float max)
-{
-	float Result = std::min(max, std::max(min, input));
-	return Result;
-}
 
 glm::vec4 gaussRND ()
 {

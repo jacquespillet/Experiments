@@ -36,7 +36,6 @@ void FFT::iDFT1D(std::vector<complex>& in, std::vector<complex>& out)
 	}
 }
 
-
 //F(k) = F_even(k) + F_odd(k) * W^k
 //Because of the rotational properties of the complex exponential
 //F(k+u) = F_even(k) - F_odd(k) * W^k
@@ -60,12 +59,9 @@ void FFT::FFT1D(const std::vector<complex>& in, std::vector<complex>& out)
 	std::vector<complex> evenResult(even.size());
 	
 	//This simply computes the DFT of the 2 arrays. Could be replaced with DFT() instead for example
-	//It works because it turns out that the frequency of a single number is the number itself, so it can be recursed
-	//file:///C:/Users/jacqu/Google%20Drive/Projets%20persos/Books/Signal/Guide_to_Digital_Signal_Process.pdf p267
 	FFT1D(even, evenResult);
     FFT1D(odd, oddResult);
-	// FFT1D(even, evenResult);
-    // FFT1D(odd, oddResult);
+
 	
 	for (size_t k = 0; k < N/2; ++k)
     {
@@ -169,94 +165,12 @@ void FFT::iFFT2D(std::vector<complex>& in, std::vector<complex>& out)
 FFT::FFT() {
 }
 
-void FFT::InitBuffers()
+void FFT::InitBuffers1D()
 {
-}
+	inputFloat1D = std::vector<float> (size1D);
+	inputXAxis = std::vector<float> (size1D);
+	input1D = std::vector<complex> (size1D);
 
-
-
-void FFT::Load() {
-    InitBuffers();
-
-	// DoDFT1D();
-	DoFFT2D();
-}
-
-void FFT::RenderGUI() {
-	bool open = false;
-    ImGui::Begin("Parameters : ", &open);
-	ImGui::SetWindowSize(ImVec2((float)800, (float)600));
-	// ImGui::SetWindowPos(ImVec2(0, 0));
-
-    ImGui::Checkbox("2D", &mode);
-	if(mode)
-	{
-		ImGui::PlotConfig conf;
-		conf.values.ys = inputFloat.data();
-		conf.values.count = (int)width;
-		conf.scale.min = -1;
-		conf.scale.max = 1;
-		conf.tooltip.show = true;
-		conf.tooltip.format = "x=%.2f, y=%.2f";
-		// conf.grid_x.show = true;
-		conf.grid_y.show = true;
-		conf.frame_size = ImVec2((float)windowWidth, 300);
-		conf.line_thickness = 2.f;
-		ImGui::Plot("plot", conf);
-
-		ImGui::PlotConfig confDftOut;
-		// confDftOut.values.xs = inputXAxis.data();
-		confDftOut.values.ys = dftOutputFloat.data();
-		confDftOut.values.count = (int)width/2;
-		confDftOut.scale.min = -1;
-		confDftOut.scale.max = 1;
-		confDftOut.tooltip.show = true;
-		confDftOut.tooltip.format = "x=%.2f, y=%.2f";
-		// confDftOut.grid_x.show = true;
-		confDftOut.grid_y.show = true;
-		confDftOut.frame_size = ImVec2((float)windowWidth, 300);
-		confDftOut.line_thickness = 2.f;
-		ImGui::Plot("plot", confDftOut);
-		// DFT1D(input, output);
-
-		ImGui::PlotConfig confIdftOut;
-		// confIdftOut.values.xs = inputXAxis.data();
-		confIdftOut.values.ys = idftOutputFloat.data();
-		confIdftOut.values.count = (int)width;
-		confIdftOut.scale.min = -1;
-		confIdftOut.scale.max = 1;
-		confIdftOut.tooltip.show = true;
-		confIdftOut.tooltip.format = "x=%.2f, y=%.2f";
-		// confIdftOut.grid_x.show = true;
-		confIdftOut.grid_y.show = true;
-		confIdftOut.frame_size = ImVec2((float)windowWidth, 300);
-		confIdftOut.line_thickness = 2.f;
-		ImGui::Plot("plot", confIdftOut);
-		// DFT1D(input, output);
-	}
-	else
-	{
-		ImGui::Image((void*)(intptr_t)inputTexture,  ImVec2(512,512));
-		ImGui::Image((void*)(intptr_t)frequencyTexture,  ImVec2(512,512));
-		ImGui::Image((void*)(intptr_t)outputTexture,  ImVec2(512,512));
-	}
-
-    ImGui::End();
-}
-
-void FFT::DoFFT()
-{
-	inputFloat = std::vector<float> (bufferSize);
-	inputXAxis = std::vector<float> (bufferSize);
-	input = std::vector<complex> (bufferSize);
-
-	dftOutputFloat = std::vector<float> (bufferSize);
-	dftOutput = std::vector<complex> (bufferSize);
-	
-	idftOutputFloat = std::vector<float> (bufferSize);
-	idftOutput = std::vector<complex> (bufferSize);
-
-	int numFrequencies = 10;
 	std::vector<float> frequencies(numFrequencies);
 	for (int i = 0; i < numFrequencies; i++)
 	{
@@ -266,40 +180,22 @@ void FFT::DoFFT()
 		std::cout << frequencies[i] << std::endl;
 	}
 
-	for(int i=0; i<input.size(); i++)
+	for(int i=0; i<input1D.size(); i++)
 	{
 		for (int j = 0; j < numFrequencies; j++)
 		{
-			float time = ((float)i / (float)input.size()) * (float)TWO_PI * frequencies[j];
+			float time = ((float)i / (float)input1D.size()) * (float)TWO_PI * frequencies[j];
 			float cosValue = cos(time) / (float)numFrequencies;
-			input[i] += complex(cosValue, 0);
-			inputFloat[i] += cosValue;
+			input1D[i] += complex(cosValue, 0);
+			inputFloat1D[i] += cosValue;
 		}
-		float time = ((float)i / (float)input.size()) * (float)TWO_PI;
+		float time = ((float)i / (float)input1D.size()) * (float)TWO_PI;
 		inputXAxis[i] = time;
-	}
-
-	// DFT1D(input, dftOutput);
-	// FFTSplit1(input, dftOutput);
-	// FFTSplit2(input, dftOutput);
-	FFT1D(input, dftOutput);
-	for(int i=0; i<input.size()/2; i++)
-	{
-		dftOutputFloat[i] = ((float)std::abs(dftOutput[i]) * 2) / (float)bufferSize;
-	}	
-
-	iFFT1D(dftOutput, idftOutput);
-
-	for(int i=0; i<input.size(); i++)
-	{
-		idftOutputFloat[i] = (float)idftOutput[i].real();
 	}
 }
 
-
-void FFT::DoFFT2D()
+void FFT::InitBuffers2D()
 {
-	
 	std::string filename = "C:/Users/jacqu/OneDrive/Pictures/geoguessr/Capture.PNG";
 	stbi_set_flip_vertically_on_load(true);  
 	std::cout << "Reading image..." << std::endl;
@@ -308,15 +204,15 @@ void FFT::DoFFT2D()
 	int size = width * height;
 
 	std::cout << "Allocating buffers..." << std::endl;
-	input = std::vector<complex> (size);
+	input2D = std::vector<complex> (size);
 
-	dftOutputFloat = std::vector<float> (size);
-	dftOutput = std::vector<complex> (size);
+	dftOutputFloat2D = std::vector<float> (size);
+	dftOutput2D = std::vector<complex> (size);
 	
-	idftOutputFloat = std::vector<float> (size);
-	idftOutput = std::vector<complex> (size);
+	idftOutputFloat2D = std::vector<float> (size);
+	idftOutput2D = std::vector<complex> (size);
 
-	for(int i=0; i<input.size(); i++)
+	for(int i=0; i<input2D.size(); i++)
 	{	
 		uint32_t index = i * nChannels;
 		int r = (int) data[index + 0];
@@ -324,36 +220,7 @@ void FFT::DoFFT2D()
 		int b = (int) data[index + 2];
 		int gray = (r + g + b) / 3;
 		float grayFloat = (float)gray / 255.0f;
-		input[i] = complex(grayFloat, 0);
-	}
-
-	std::cout << "Doing FFT..." << std::endl;
-	FFT2D(input, dftOutput);
-
-	int halfWidth = width/2;
-	int halfHeight = height/2;
-	for(int i=0; i<dftOutput.size(); i++)
-	{
-
-		int x = i % width;
-		int y = i / width;
-		int targetX = x, targetY=y, targetPixel;
-		if(x < halfWidth) targetX = halfWidth - x - 1;
-		else targetX = std::max(0, std::min(width- 1, (width - x) + halfWidth));
-		
-		if(y < halfHeight) targetY = halfHeight - y - 1;
-		else targetY = std::max(0, std::min(height-1, (height - y) + halfHeight));
-
-		targetPixel = targetY * width + targetX;
-		dftOutputFloat[targetPixel] = ((float)std::abs(dftOutput[i])) / (float)width;
-	}
-
-	std::cout << "Doing IFFT..." << std::endl;
-	iFFT2D(dftOutput, idftOutput);
-	
-	for(int i=0; i<input.size(); i++)
-	{
-		idftOutputFloat[i] = (float)idftOutput[i].real();
+		input2D[i] = complex(grayFloat, 0);
 	}
 
 	glGenTextures(1, &inputTexture);
@@ -366,7 +233,7 @@ void FFT::DoFFT2D()
 	
 	glGenTextures(1, &frequencyTexture);
 	glBindTexture(GL_TEXTURE_2D, frequencyTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, dftOutputFloat.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -374,7 +241,7 @@ void FFT::DoFFT2D()
 	
 	glGenTextures(1, &outputTexture);
 	glBindTexture(GL_TEXTURE_2D, outputTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, idftOutputFloat.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -385,55 +252,201 @@ void FFT::DoFFT2D()
 }
 
 
-void FFT::DoDFT1D()
-{
-	inputFloat = std::vector<float> (bufferSize);
-	inputXAxis = std::vector<float> (bufferSize);
-	input = std::vector<complex> (bufferSize);
 
-	dftOutputFloat = std::vector<float> (bufferSize);
-	dftOutput = std::vector<complex> (bufferSize);
-	
-	idftOutputFloat = std::vector<float> (bufferSize);
-	idftOutput = std::vector<complex> (bufferSize);
-	
-	int numFrequencies = 10;
-	std::vector<float> frequencies(numFrequencies);
-	for (int i = 0; i < numFrequencies; i++)
-	{
-		frequencies[i] = (float)std::rand() / (float)RAND_MAX;
-		frequencies[i] *= 20;
-		frequencies[i] = std::floor(frequencies[i]);
-		std::cout << frequencies[i] << std::endl;
-	}
+void FFT::Load() {
+    InitBuffers1D();
+    InitBuffers2D();
+}
 
-	for(int i=0; i<input.size(); i++)
+void FFT::RenderGUI() {
+	bool open = false;
+    ImGui::Begin("Parameters : ", &open);
+	ImGui::SetWindowSize(ImVec2((float)800, (float)600));
+	
+    ImGui::Checkbox("2D", &mode);
+	if(!mode) //1D
 	{
-		for (int j = 0; j < numFrequencies; j++)
+		if(ImGui::Button("Regenerate"))
 		{
-			float time = ((float)i / (float)input.size()) * (float)TWO_PI * frequencies[j];
-			float cosValue = cos(time) / (float)numFrequencies;
-			input[i] += complex(cosValue, 0);
-			inputFloat[i] += cosValue;
+			InitBuffers1D();
 		}
-		float time = ((float)i / (float)input.size()) * (float)TWO_PI;
-		inputXAxis[i] = time;
+		if(ImGui::Button("FFT"))
+		{
+			DoFFT1D();
+		}
+		if(ImGui::Button("IFFT"))
+		{
+			DoIFFT1D();
+		}
+		if(ImGui::Button("DFT"))
+		{
+			DoDFT1D();
+		}
+		if(ImGui::Button("IDFT"))
+		{
+			DoIDFT1D();
+		}
+		ImGui::PlotConfig conf;
+		conf.values.ys = inputFloat1D.data();
+		conf.values.count = size1D;
+		conf.scale.min = -1;
+		conf.scale.max = 1;
+		conf.tooltip.show = true;
+		conf.tooltip.format = "x=%.2f, y=%.2f";
+		conf.grid_y.show = true;
+		conf.frame_size = ImVec2((float)windowWidth, 300);
+		conf.line_thickness = 2.f;
+		ImGui::Plot("plot", conf);
+
+		if(dftOutputFloat1D.size() > 0)
+		{
+			ImGui::PlotConfig confDftOut;
+			// confDftOut.values.xs = inputXAxis.data();
+			confDftOut.values.ys = dftOutputFloat1D.data();
+			confDftOut.values.count = (int)dftOutputFloat1D.size()/2;
+			confDftOut.scale.min = -1;
+			confDftOut.scale.max = 1;
+			confDftOut.tooltip.show = true;
+			confDftOut.tooltip.format = "x=%.2f, y=%.2f";
+			// confDftOut.grid_x.show = true;
+			confDftOut.grid_y.show = true;
+			confDftOut.frame_size = ImVec2((float)windowWidth, 300);
+			confDftOut.line_thickness = 2.f;
+			ImGui::Plot("plot", confDftOut);
+		}
+		if(idftOutputFloat1D.size() > 0)
+		{
+			ImGui::PlotConfig confIdftOut;
+			// confIdftOut.values.xs = inputXAxis.data();
+			confIdftOut.values.ys = idftOutputFloat1D.data();
+			confIdftOut.values.count = (int)idftOutputFloat1D.size();
+			confIdftOut.scale.min = -1;
+			confIdftOut.scale.max = 1;
+			confIdftOut.tooltip.show = true;
+			confIdftOut.tooltip.format = "x=%.2f, y=%.2f";
+			// confIdftOut.grid_x.show = true;
+			confIdftOut.grid_y.show = true;
+			confIdftOut.frame_size = ImVec2((float)windowWidth, 300);
+			confIdftOut.line_thickness = 2.f;
+			ImGui::Plot("plot", confIdftOut);
+		}
+	}
+	else
+	{
+		if(ImGui::Button("FFT")){
+			DoFFT2D();
+		} 
+		if(ImGui::Button("IFFT")){
+			DoIFFT2D();
+		} 
+		ImGui::Image((void*)(intptr_t)inputTexture,  ImVec2(256,256));
+		ImGui::Image((void*)(intptr_t)frequencyTexture,  ImVec2(256,256));
+		ImGui::Image((void*)(intptr_t)outputTexture,  ImVec2(256,256));
 	}
 
-	DFT1D(input, dftOutput);
+    ImGui::End();
+}
 
-	for(int i=0; i<input.size()/2; i++)
+void FFT::DoFFT1D()
+{
+
+	dftOutputFloat1D = std::vector<float> (size1D);
+	dftOutput1D = std::vector<complex> (size1D);
+
+	FFT1D(input1D, dftOutput1D);
+	for(int i=0; i<input1D.size()/2; i++)
 	{
-		dftOutputFloat[i] = ((float)std::abs(dftOutput[i]) * 2) / (float)bufferSize;
-	}
-
-	iDFT1D(dftOutput, idftOutput);
-
-	for(int i=0; i<input.size(); i++)
-	{
-		idftOutputFloat[i] = (float)idftOutput[i].real();
+		dftOutputFloat1D[i] = ((float)std::abs(dftOutput1D[i]) * 2) / (float)size1D;
 	}
 }
+
+
+void FFT::DoIFFT1D()
+{		
+	idftOutputFloat1D = std::vector<float> (size1D);
+	idftOutput1D = std::vector<complex> (size1D);
+
+	iFFT1D(dftOutput1D, idftOutput1D);
+
+	for(int i=0; i<input1D.size(); i++)
+	{
+		idftOutputFloat1D[i] = (float)idftOutput1D[i].real();
+	}
+}
+
+void FFT::DoDFT1D()
+{
+	dftOutputFloat1D = std::vector<float> (size1D);
+	dftOutput1D = std::vector<complex> (size1D);
+	
+	DFT1D(input1D, dftOutput1D);
+
+	for(int i=0; i<input1D.size()/2; i++)
+	{
+		dftOutputFloat1D[i] = ((float)std::abs(dftOutput1D[i]) * 2) / (float)size1D;
+	}
+}
+
+
+void FFT::DoIDFT1D()
+{
+	idftOutputFloat1D = std::vector<float> (size1D);
+	idftOutput1D = std::vector<complex> (size1D);
+	
+	iDFT1D(dftOutput1D, idftOutput1D);
+
+	for(int i=0; i<input1D.size(); i++)
+	{
+		idftOutputFloat1D[i] = (float)idftOutput1D[i].real();
+	}
+}
+
+void FFT::DoFFT2D()
+{
+	std::cout << "Doing FFT..." << std::endl;
+	FFT2D(input2D, dftOutput2D);
+
+	int halfWidth = width/2;
+	int halfHeight = height/2;
+	for(int i=0; i<dftOutput2D.size(); i++)
+	{
+
+		int x = i % width;
+		int y = i / width;
+		int targetX = x, targetY=y, targetPixel;
+		if(x < halfWidth) targetX = halfWidth - x - 1;
+		else targetX = std::max(0, std::min(width- 1, (width - x) + halfWidth));
+		
+		if(y < halfHeight) targetY = halfHeight - y - 1;
+		else targetY = std::max(0, std::min(height-1, (height - y) + halfHeight));
+
+		targetPixel = targetY * width + targetX;
+		dftOutputFloat2D[targetPixel] = ((float)std::abs(dftOutput2D[i])) / (float)width;
+	}
+
+
+	
+	glBindTexture(GL_TEXTURE_2D, frequencyTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, dftOutputFloat2D.data());
+    
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void FFT::DoIFFT2D()
+{
+	iFFT2D(dftOutput2D, idftOutput2D);
+	
+	for(int i=0; i<input2D.size(); i++)
+	{
+		idftOutputFloat2D[i] = (float)idftOutput2D[i].real();
+	}
+
+	glBindTexture(GL_TEXTURE_2D, outputTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, idftOutputFloat2D.data());
+    
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 
 void FFT::Render() {
@@ -441,6 +454,9 @@ void FFT::Render() {
 }
 
 void FFT::Unload() {
+    glDeleteTextures(1, &frequencyTexture);
+    glDeleteTextures(1, &inputTexture);
+    glDeleteTextures(1, &outputTexture);	
 }
 
 

@@ -1,0 +1,6 @@
+Simple particle simulation.
+Uses pingpong buffers, because the simulation is done using previous positions.
+TODO(Jacques): Get the formula
+
+Sources:
+https://developer.nvidia.com/gpugems/gpugems3/part-v-physics-simulation/chapter-31-fast-n-body-simulation-cuda

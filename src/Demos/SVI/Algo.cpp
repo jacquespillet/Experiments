@@ -17,6 +17,8 @@ rootNode =  {0}
 lastIndex = 1;
 levelStartIndices[12];
 
+rootNode = boundingBox(voxels);
+
 // Level 1
 levelStartIndex = 0;
 for all voxels
@@ -68,9 +70,12 @@ flagNode(voxel, node){
     }
 }
 
+for each level :
 //Flag nodes that have to be subdivised
 for all voxels 
-    flagNode(voxel, rootNode)
+    for nodes in level L
+        if(voxel intersects with node)
+            flagNode(voxel, rootNode)
 
 //Allocate sub tiles
 oldLastIndex = lastIndex;
@@ -79,7 +84,7 @@ while(true)
 {
     if(buffer[i] is -1) break;
 
-    if(buffer[i].childIndex == 1000000)
+    if(buffer[i].childIndex == 1000000) //Flagged node
     {
         buffer[i].childIndex = lastIndex;
         lastIndex +=8;

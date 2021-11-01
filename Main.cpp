@@ -20,6 +20,7 @@
 #include "Demos/BitonicSort/BitonicSort.hpp"
 #include "Demos/FFT/FFT.hpp"
 #include "Demos/Ocean_FFT/Ocean_FFT.hpp"
+#include "Demos/PicFlipFluid/PicFlipFluid.hpp"
 #include "Demos/Template/Template.hpp"
 
 
@@ -89,6 +90,12 @@ struct DemoManager {
             break;
         case 9:
             demo = new Ocean_FFT;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 10:
+            demo = new PicFlipFluid;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -348,6 +355,10 @@ private:
             if(ImGui::Button("Ocean FFT", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(9);
+            }
+            if(ImGui::Button("Pic-Flip fluid", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(10);
             }
             // if(ImGui::Button("Template", ImVec2(100, 20))) {
             //     demoManager.ClearDemo();

@@ -293,10 +293,92 @@ void CreateComputeShader(std::string filename, GLint *programShaderObject)
 	}
 }
 
+void CreateComputeShader(const std::vector<std::string>& filenames, GLint *programShaderObject)
+{
+    std::stringstream shaderBuffer;
+    shaderBuffer << "#version 430 core \n";
+    for(int i=0; i<filenames.size(); i++)
+    {
+        std::ifstream t(filenames[i]);
+        shaderBuffer << t.rdbuf();
+        t.close();
+
+        shaderBuffer << "\n";
+    }
+    std::string shaderSrc = shaderBuffer.str();
+    GLint shaderObject;
+
+	//make array to pointer for source code (needed for opengl )
+	const char* vsrc[1];
+	vsrc[0] = shaderSrc.c_str();
+	
+	//compile vertex and fragment shaders from source
+	shaderObject = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(shaderObject, 1, vsrc, NULL);
+	glCompileShader(shaderObject);
+	
+	//link vertex and fragment shader to create shader program object
+	*programShaderObject = glCreateProgram();
+	glAttachShader(*programShaderObject, shaderObject);
+	glLinkProgram(*programShaderObject);
+	std::cout << "Shader:Compile: checking shader status" << std::endl;
+	
+	//Check status of shader and log any compile time errors
+	int linkStatus;
+	glGetProgramiv(*programShaderObject, GL_LINK_STATUS, &linkStatus);
+	if (linkStatus != GL_TRUE) 
+	{
+		char log[5000];
+		int lglen; 
+		glGetProgramInfoLog(*programShaderObject, 5000, &lglen, log);
+		std::cerr << "Shader:Compile: Could not link program: " << std::endl;
+		std::cerr << log << std::endl;
+		
+        glGetShaderInfoLog(shaderObject, 5000, &lglen, log);
+		std::cerr << "vertex shader log:\n" << log << std::endl;
+		
+        glDeleteProgram(*programShaderObject);
+		*programShaderObject = 0;
+	}
+	else
+	{
+		std::cout << "Shader:Compile: compile success " << std::endl;
+	}
+}
+
 
 void BindSSBO(GLuint shader, GLuint ssbo, std::string name, GLuint bindingPoint)
 {
 	glUseProgram(shader);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bindingPoint, ssbo);
+}
+
+float Clamp01(float input)
+{
+	float Result = std::min(1.0f, std::max(0.001f, input));
+	return Result;
+}
+
+float Clamp(float input, float min, float max)
+{
+	float Result = std::min(max, std::max(min, input));
+	return Result;
+}
+
+
+float RandomFloat(float min, float max)
+{
+	float Result = (float)std::rand() / (float)RAND_MAX;
+	float range = max - min;
+	Result *= range;
+	Result += min;
+	return Result;
+}
+
+int RandomInt(int min, int max)
+{
+	float ResultF = RandomFloat((float)min, (float)max);
+	int Result = (int)ResultF;
+	return Result;
 }

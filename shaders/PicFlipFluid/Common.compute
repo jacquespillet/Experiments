@@ -1,0 +1,81 @@
+int AIR = 0;
+int SOLID = 1;
+int FLUID = 2;
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    vec3 vel;
+};
+
+struct GridCell {
+    vec3 pos;
+    int type;
+    vec3 vel;
+    float rhs;
+    vec3 oldVel;
+    float aDiag;
+    float aX;
+    float aY;
+    float aZ;
+    float pressureGuess;
+    float pressure;
+    int velUnknown;
+};
+
+struct Transfer {
+    float u;
+    float v;
+    float w;
+    float weight_u;
+    float weight_v;
+    float weight_w;
+    bool isFluid;
+};
+
+
+
+
+layout(std430, binding=0) restrict buffer ParticlesBuffer {
+    Particle particle[];
+};
+
+layout(std430, binding=1) restrict buffer GridBuffer {
+    GridCell cell[];
+};
+
+layout(std430, binding=2) coherent buffer TransferBuffer {
+    Transfer transfer[];
+};
+
+uniform ivec3 gridDim;
+uniform vec3 boundsMin;
+uniform vec3 boundsMax;
+
+ivec3 gridCellDim = gridDim - ivec3(1);
+vec3 boundsSize = boundsMax - boundsMin;
+vec3 cellSize = boundsSize / vec3(gridDim - ivec3(1));
+
+const float density = 1.0f; // kg/m^3
+
+bool gridInBounds(ivec3 gridCoord) {
+    return gridCoord.x >= 0 && gridCoord.y >= 0 && gridCoord.z >= 0 &&
+           gridCoord.x < gridDim.x && gridCoord.y < gridDim.y && gridCoord.z < gridDim.y;
+}
+
+ivec3 getGridCoord(vec3 pos, ivec3 halfOffset) {
+    return ivec3(floor((pos + vec3(halfOffset) * (cellSize / 2.0) - boundsMin) / boundsSize * vec3(gridCellDim)));
+}
+
+vec3 getWorldCoord(ivec3 gridCoord, ivec3 halfOffset) {
+    return boundsMin + vec3(gridCoord) * cellSize + vec3(halfOffset) * cellSize * 0.5;
+}
+
+int getGridFlatIndex(ivec3 gridCoord) {
+    ivec3 clampedCoord = clamp(gridCoord, ivec3(0), gridDim - ivec3(1));
+    return gridCoord.z * gridDim.y * gridDim.x + gridCoord.y * gridDim.x + gridCoord.x;
+}
+
+ivec3 offsetClamped(ivec3 baseCoord, ivec3 dimensionOffset) {
+    return clamp(baseCoord + dimensionOffset, ivec3(0), gridDim - ivec3(1));
+}
