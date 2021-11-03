@@ -56,7 +56,7 @@ ivec3 gridCellDim = gridDim - ivec3(1);
 vec3 boundsSize = boundsMax - boundsMin;
 vec3 cellSize = boundsSize / vec3(gridDim - ivec3(1));
 
-const float density = 1.0f; // kg/m^3
+uniform float density; // kg/m^3
 
 bool gridInBounds(ivec3 gridCoord) {
     return gridCoord.x >= 0 && gridCoord.y >= 0 && gridCoord.z >= 0 &&

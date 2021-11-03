@@ -7,7 +7,7 @@
 #include <sstream>
 #include <fstream>
 
-GL_Mesh MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
+GL_Mesh *MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
     std::vector<uint32_t> triangles;
     std::vector<GL_Mesh::Vertex> vertices;   
 
@@ -63,7 +63,7 @@ GL_Mesh MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
             triangles.push_back(face.mIndices[k]);
     }
 
-    GL_Mesh gl_mesh(vertices, triangles);
+    GL_Mesh *gl_mesh = new GL_Mesh(vertices, triangles);
     // processNode(scene->mRootNode, scene, vertex, normals, uv, colors, triangles);
     
     return gl_mesh;
@@ -104,7 +104,10 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
             material->GetTexture (aiTextureType_DIFFUSE, 0, &path);
             std::stringstream diffuseTexFilename;
             diffuseTexFilename << folderPath << "\\" << path.C_Str();
-            gl_material->LoadTexture(diffuseTexFilename.str(), GL_Material::TEXTURE_TYPE::DIFFUSE);
+            if(path.length>0)
+            {
+                gl_material->LoadTexture(diffuseTexFilename.str(), GL_Material::TEXTURE_TYPE::DIFFUSE);
+            }
         }
 
         {
@@ -112,7 +115,10 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
             material->GetTexture (aiTextureType_SPECULAR, 0, &path);
             std::stringstream specularTexFilename;
             specularTexFilename << folderPath << "\\" << path.C_Str();
-            gl_material->LoadTexture(specularTexFilename.str(), GL_Material::TEXTURE_TYPE::SPECULAR);
+            if(path.length>0)
+            {
+                gl_material->LoadTexture(specularTexFilename.str(), GL_Material::TEXTURE_TYPE::SPECULAR);
+            }
         }
 
         {
@@ -120,7 +126,10 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
             material->GetTexture (aiTextureType_OPACITY, 0, &path);
             std::stringstream opacityTexFilename;
             opacityTexFilename << folderPath << "\\" << path.C_Str();
-            gl_material->LoadTexture(opacityTexFilename.str(), GL_Material::TEXTURE_TYPE::OPACITY);
+            if(path.length>0)
+            {
+                gl_material->LoadTexture(opacityTexFilename.str(), GL_Material::TEXTURE_TYPE::OPACITY);
+            }
         }
 
         {
@@ -128,7 +137,10 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
             material->GetTexture (aiTextureType_NORMALS, 0, &path);
             std::stringstream normalTexFilename;
             normalTexFilename << folderPath << "\\" << path.C_Str();
-            gl_material->LoadTexture(normalTexFilename.str(), GL_Material::TEXTURE_TYPE::NORMAL);
+            if(path.length>0)
+            {
+                gl_material->LoadTexture(normalTexFilename.str(), GL_Material::TEXTURE_TYPE::NORMAL);
+            }
         }
 
         {
@@ -136,7 +148,10 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
             material->GetTexture (aiTextureType_AMBIENT, 0, &path);
             std::stringstream ambientTexFilename;
             ambientTexFilename << folderPath << "\\" << path.C_Str();
-            gl_material->LoadTexture(ambientTexFilename.str(), GL_Material::TEXTURE_TYPE::AMBIENT);
+            if(path.length>0)
+            {
+                gl_material->LoadTexture(ambientTexFilename.str(), GL_Material::TEXTURE_TYPE::AMBIENT);
+            }
         }
 
         aiColor3D color;
@@ -381,4 +396,68 @@ int RandomInt(int min, int max)
 	float ResultF = RandomFloat((float)min, (float)max);
 	int Result = (int)ResultF;
 	return Result;
+}
+
+
+bool RayTriangleIntersection( 
+    glm::vec3 &orig, glm::vec3 &dir, 
+    glm::vec3 &v0,glm::vec3 &v1,glm::vec3 &v2,
+    float *t, glm::vec2*uv) 
+{ 
+    float kEpsilon = 1e-8f; 
+    float u, v;
+
+    glm::vec3 v0v1 = v1 - v0; 
+    glm::vec3 v0v2 = v2 - v0; 
+    glm::vec3 pvec = glm::cross(dir, v0v2);
+    float det = glm::dot(v0v1, pvec);
+
+    // ray and triangle are parallel if det is close to 0
+    if (std::abs(det) < kEpsilon) return false; 
+
+    float invDet = 1 / det; 
+   
+    glm::vec3 tvec = orig - v0; 
+    u = glm::dot(tvec, pvec) * invDet; 
+    if (u < 0 || u > 1) return false; 
+
+    glm::vec3 qvec = glm::cross(tvec, v0v1); 
+    v = glm::dot(dir, qvec) * invDet; 
+    if (v < 0 || u + v > 1) return false; 
+
+    *t = glm::dot(v0v2, qvec) * invDet; 
+    *uv = glm::vec2(u, v);
+
+    // return true;
+	if (*t > 0) return true;
+	else return false; 
+} 
+
+bool RayAABBIntersection(glm::vec3 &orig, glm::vec3 &invDir, int *sign, AABB &aabb)
+{
+    float tmin, tmax, tymin, tymax, tzmin, tzmax; 
+ 
+    tmin = (aabb.bounds[sign[0]].x - orig.x) * invDir.x; 
+    tmax = (aabb.bounds[1-sign[0]].x - orig.x) * invDir.x; 
+    tymin = (aabb.bounds[sign[1]].y - orig.y) * invDir.y; 
+    tymax = (aabb.bounds[1-sign[1]].y - orig.y) * invDir.y; 
+ 
+    if ((tmin > tymax) || (tymin > tmax)) 
+        return false; 
+    if (tymin > tmin) 
+        tmin = tymin; 
+    if (tymax < tmax) 
+        tmax = tymax; 
+ 
+    tzmin = (aabb.bounds[sign[2]].z - orig.z) * invDir.z; 
+    tzmax = (aabb.bounds[1-sign[2]].z - orig.z) * invDir.z; 
+ 
+    if ((tmin > tzmax) || (tzmin > tmax)) 
+        return false; 
+    if (tzmin > tmin) 
+        tmin = tzmin; 
+    if (tzmax < tmax) 
+        tmax = tzmax; 
+ 
+    return true;
 }

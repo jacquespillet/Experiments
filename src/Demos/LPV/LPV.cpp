@@ -502,13 +502,18 @@ void LPV::Load() {
     std::cout << "StandardShaders:Compile: Compiling unlitMeshShader" << std::endl; 
     MeshShader.Compile();      
 
-    MeshesFromFile("resources/models/crytek-sponza/test/sponza_2.obj", &Meshes, &Materials);
+    // MeshesFromFile("resources/models/crytek-sponza/test/sponza_2.obj", &Meshes, &Materials);
+    MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
+    // for(int i=0; i<Meshes.size(); i++)
+    // {
+    //     Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
+    // }
 
     bbMin = glm::vec3(std::numeric_limits<float>::max());
     bbMax = glm::vec3(-std::numeric_limits<float>::max());
     for(int i=0; i<Meshes.size(); i++)
     {
-        Meshes[i]->SetScale(glm::vec3(1, 1, 1));
+        Meshes[i]->SetScale(glm::vec3(0.05, 0.05, 0.05));
         glm::vec3 meshBbMin = Meshes[i]->GetMinBoundingBox();
         glm::vec3 meshBbMax = Meshes[i]->GetMaxBoundingBox();
         bbMin = glm::min(bbMin, meshBbMin);

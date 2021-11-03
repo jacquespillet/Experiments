@@ -1,7 +1,11 @@
 #pragma once
 #include "GL_Mesh.hpp"
 
-GL_Mesh MeshFromFile(std::string filename, bool swapYZ=false, int subMeshIndex=0);
+struct AABB{
+    glm::vec3 bounds[2];
+};
+
+GL_Mesh *MeshFromFile(std::string filename, bool swapYZ=false, int subMeshIndex=0);
 
 void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std::vector<GL_Material*>* OutMaterials);
 
@@ -20,3 +24,11 @@ int RandomInt(int min, int max);
 float Clamp01(float input);
 
 float Clamp(float input, float min, float max);
+
+
+bool RayTriangleIntersection( 
+    glm::vec3 &orig, glm::vec3 &dir, 
+    glm::vec3 &v0,glm::vec3 &v1,glm::vec3 &v2,
+    float *t, glm::vec2*uv) ;
+    
+bool RayAABBIntersection(glm::vec3 &orig, glm::vec3 &invDir, int *sign, AABB &aabb);

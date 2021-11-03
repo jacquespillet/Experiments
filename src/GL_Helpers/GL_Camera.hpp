@@ -4,7 +4,7 @@
 
 class GL_Camera {
 public:
-    GL_Camera(glm::vec3 position, float fov=80.0f, float nearPlane=0.01f, float farPlane=3000.0f, float aspectRatio=1.0f) : fov(fov), nearPlane(nearPlane), farPlane(farPlane), aspectRatio(aspectRatio), sphericalPosition(glm::vec3(0, 0, 1)), target(position), up(glm::vec3(0,1,0)){ 
+    GL_Camera(glm::vec3 position, float fov=80.0f, float nearPlane=0.01f, float farPlane=3000.0f, float aspectRatio=1.7778f) : fov(fov), nearPlane(nearPlane), farPlane(farPlane), aspectRatio(aspectRatio), sphericalPosition(glm::vec3(0, 0, 1)), target(position), up(glm::vec3(0,1,0)){ 
         worldPosition = target + sphericalPosition * distance;
         theta =  atan2(sqrt(sphericalPosition.x * sphericalPosition.x  + sphericalPosition.z * sphericalPosition.z), sphericalPosition.y);
         phi = atan2(sphericalPosition.z, sphericalPosition.x); 
@@ -25,7 +25,13 @@ public:
     void SetNearPlane(float _nearPlane) {this->nearPlane = _nearPlane; RecalculateProjectionMatrix();}
     void SetFarPlane(float _farPlane) {this->farPlane = _farPlane; RecalculateProjectionMatrix();}
     void SetAspectRatio(float _aspectRatio) {this->aspectRatio = _aspectRatio; RecalculateProjectionMatrix();}
-
+    void SetDistance(float _distance) {this->distance = _distance; RecalculateLookat();}
+    void SetSphericalPosition(glm::vec3 _position) {
+        this->sphericalPosition = _position; 
+        theta =  atan2(sqrt(sphericalPosition.x * sphericalPosition.x  + sphericalPosition.z * sphericalPosition.z), sphericalPosition.y);
+        phi = atan2(sphericalPosition.z, sphericalPosition.x); 
+        RecalculateLookat();
+    }
     void RecalculateProjectionMatrix() {
         projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
     }
@@ -39,7 +45,8 @@ public:
     void mouseReleaseEvent(int button);
     void mouseMoveEvent(float x, float y);
     void Scroll(float offset);
-
+    
+    void GetScreenRay(glm::vec2 ndc, float aspect, glm::vec3& rayOrig, glm::vec3& rayDir);
     glm::vec3 worldPosition;
 
     bool locked=false;

@@ -21,6 +21,7 @@
 #include "Demos/FFT/FFT.hpp"
 #include "Demos/Ocean_FFT/Ocean_FFT.hpp"
 #include "Demos/PicFlipFluid/PicFlipFluid.hpp"
+#include "Demos/DeferredDecals/DeferredDecals.hpp"
 #include "Demos/Template/Template.hpp"
 
 
@@ -100,12 +101,18 @@ struct DemoManager {
             demo->windowHeight = windowHeight;
             demo->Load();
             break;
-        // case 9:
-        //     demo = new Template;
-        //     demo->windowWidth = windowWidth;
-        //     demo->windowHeight = windowHeight;
-        //     demo->Load();
-        //     break;
+        case 11:
+            demo = new DeferredDecals;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 12:
+            demo = new Template;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
         default:
             break;
         }
@@ -360,10 +367,14 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(10);
             }
-            // if(ImGui::Button("Template", ImVec2(100, 20))) {
-            //     demoManager.ClearDemo();
-            //     demoManager.LoadDemo(8);
-            // }
+            if(ImGui::Button("Deferred Decals", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(11);
+            }
+            if(ImGui::Button("Template", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(12);
+            }
 
             demoManager.RenderGUI();
 

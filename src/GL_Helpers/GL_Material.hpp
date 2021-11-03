@@ -37,13 +37,18 @@ public:
         
         glUseProgram(shader);
 
-        SetTexture("diffuseTexture", diffuseTexture, TEXTURE_TYPE::DIFFUSE);
-        SetTexture("specularTexture", specularTexture, TEXTURE_TYPE::SPECULAR);
-        SetTexture("opacityTexture", opacityTexture, TEXTURE_TYPE::OPACITY);
-        SetTexture("ambientTexture", ambientTexture, TEXTURE_TYPE::AMBIENT);
-        SetTexture("normalTexture", normalTexture, TEXTURE_TYPE::NORMAL);
-
-
+        if(diffuseTextureSet) SetTexture("diffuseTexture", diffuseTexture, TEXTURE_TYPE::DIFFUSE);
+        if(specularTextureSet) SetTexture("specularTexture", specularTexture, TEXTURE_TYPE::SPECULAR);
+        if(opacityTextureSet) SetTexture("opacityTexture", opacityTexture, TEXTURE_TYPE::OPACITY);
+        if(ambientTextureSet) SetTexture("ambientTexture", ambientTexture, TEXTURE_TYPE::AMBIENT);
+        if(normalTextureSet) SetTexture("normalTexture", normalTexture, TEXTURE_TYPE::NORMAL);
+        
+        SetInt("diffuseTextureSet", (int)diffuseTextureSet);
+        SetInt("specularTextureSet", (int)specularTextureSet);
+        SetInt("opacityTextureSet", (int)opacityTextureSet);
+        SetInt("ambientTextureSet", (int)ambientTextureSet);
+        SetInt("normalTextureSet", (int)normalTextureSet);     
+        
         SetVec3("mat_ambient", ambient);
         SetVec3("mat_diffuse", diffuse);
         SetVec3("mat_specular", specular);
@@ -71,21 +76,28 @@ public:
         {
         case DIFFUSE:
             diffuseTexture = GL_Texture(filename, {});
+            diffuseTextureSet=true;
             break;
         case SPECULAR:
             specularTexture = GL_Texture(filename, {});
+            specularTextureSet=true;
             break;
         case HEIGHT:
             heightTexture = GL_Texture(filename, {});
+            heightTextureSet=true;
             break;
         case OPACITY:
             opacityTexture = GL_Texture(filename, {});
+            opacityTextureSet=true;
             break;
         case AMBIENT:
             ambientTexture = GL_Texture(filename, {});
+            ambientTextureSet=true;
             break;
         case NORMAL:
+            std::cout << "LOADING NORMAL" << std::endl;
             normalTexture = GL_Texture(filename, {});
+            normalTextureSet=true;
             break;
         default:
             break;
@@ -102,6 +114,12 @@ public:
         glDeleteTextures(1, &normalTexture.glTex);
     }
 
+    bool diffuseTextureSet=false;
+    bool specularTextureSet=false;
+    bool opacityTextureSet=false;
+    bool heightTextureSet=false;
+    bool ambientTextureSet=false;
+    bool normalTextureSet=false;
 
     GL_Texture diffuseTexture;
 	GL_Texture specularTexture;

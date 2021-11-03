@@ -30,13 +30,13 @@ void Template::Load() {
     std::cout << "StandardShaders:Compile: Compiling unlitMeshShader" << std::endl; 
     MeshShader.Compile();      
 
-    MeshesFromFile("resources/models/crytek-sponza/sponza.obj", &Meshes, &Materials);
+    MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
     for(int i=0; i<Meshes.size(); i++)
     {
         Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
     }
 
-    lightDirection = glm::normalize(glm::vec3(-0.3, 0.9, -0.25));
+    lightDirection = glm::normalize(glm::vec3(0, -1, 1));
 
     cam = GL_Camera(glm::vec3(0, 10, 0));  
 
@@ -53,6 +53,9 @@ void Template::RenderGUI() {
         lightDirectionChanged=true;
         lightDirection = localLightDirection;
     }
+
+    ImGui::Checkbox("Normal Texture", &normalTextureSet);
+    ImGui::Checkbox("specular Texture", &specularTextureSet);
         
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
@@ -72,6 +75,9 @@ void Template::Render() {
         glm::vec3 test(1,2,3);
         glUniform3fv(glGetUniformLocation(MeshShader.programShaderObject, "cameraPosition"), 1, glm::value_ptr(cam.worldPosition));
                 
+        glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "normalTextureSet"), (int)normalTextureSet);
+        glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "specularTextureSet"), (int)specularTextureSet);
+        
         Meshes[i]->Render(cam, MeshShader.programShaderObject);
     }
 }

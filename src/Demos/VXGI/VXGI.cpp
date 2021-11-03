@@ -166,10 +166,8 @@ void VXGI::Load() {
     std::cout << "StandardShaders:Compile: Compiling unlitMeshShader" << std::endl; 
     MeshShader.Compile();      
 
-    // MeshesFromFile("resources/models/Bistro/Interior/interior.obj", &Meshes, &Materials);
-    // MeshesFromFile("resources/models/Bistro/Exterior/exterior.obj", &Meshes, &Materials);
-    // MeshesFromFile("resources/models/San_Miguel/san-miguel-low-poly.obj", &Meshes, &Materials);
-    MeshesFromFile("resources/models/crytek-sponza/sponza.obj", &Meshes, &Materials);
+    MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
+    
     for(int i=0; i<Meshes.size(); i++)
     {
         Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));

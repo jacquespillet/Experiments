@@ -201,12 +201,13 @@ void PicFlipFluid::RenderGUI() {
 	ImGui::SliderFloat3("Gravity", &gravity[0], -10, 10);
 	ImGui::SliderFloat("picFlip blend", &picFlipBlend, 0, 1);
 	ImGui::SliderInt("Jacobi iterations", &iters, 1, 60);
+	ImGui::SliderFloat("mass", &massFactor, 0.01f, 100.0f);
 	if(ImGui::Button("Attract on/off")) {
 		attract = !attract;		
 	}
 
 	ImGui::Text("Reseting params");
-	ImGui::SliderInt("Density", &density, 1, 128);
+	ImGui::SliderInt("Density", &density, 1, 256);
 	ImGui::SliderInt("gridSize", &gridSize, 12, 48);
 	if(ImGui::Button("Reset"))
 	{
@@ -247,8 +248,6 @@ void PicFlipFluid::Reset()
 
 				
 				transferData.emplace_back(transfer());
-
-				const glm::ivec3& d = gridCellDimensions;
 				
 				float length = glm::length(glm::vec3(cell_pos.x, cell_pos.y, 0));
 				if (length < 2) {
@@ -355,6 +354,7 @@ void PicFlipFluid::GridProjection()
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	glUseProgram(gridProjectionShader);
 	SetGridUniforms(gridProjectionShader);
+	glUniform1f(glGetUniformLocation(gridProjectionShader, "density"), massFactor);
 	
 	glUniform1f(glGetUniformLocation(gridProjectionShader, "dt"), timestep);
 	glDispatchCompute(gridDimensions.x, gridDimensions.y, gridDimensions.z);
@@ -382,6 +382,7 @@ void PicFlipFluid::PressureUpdate()
 	glUseProgram(pressureUpdateShader);
 	glUniform1f(glGetUniformLocation(pressureUpdateShader, "dt"), timestep);
 	SetGridUniforms(pressureUpdateShader);
+	glUniform1f(glGetUniformLocation(pressureUpdateShader, "density"), massFactor);
 	glDispatchCompute(gridDimensions.x, gridDimensions.y, gridDimensions.z);
 }
 

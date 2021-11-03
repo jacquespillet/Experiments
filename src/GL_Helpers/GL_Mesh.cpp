@@ -43,6 +43,8 @@ GL_Mesh::GL_Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> triangl
 }
 
 void GL_Mesh::Render(const GL_Camera& camera, GLuint shader) {
+    if(!visible) return; 
+    
 	material->BindShader(shader);
     material->SetShaderUniforms();
     
@@ -62,6 +64,8 @@ void GL_Mesh::Render(const GL_Camera& camera, GLuint shader) {
 
 void GL_Mesh::RenderDepthOnly(const glm::mat4& viewProjection, GLuint shader)
 {
+    if(!visible) return;
+	
 	glUseProgram(shader);
 
 	glm::mat4 modelViewProjectionMatrix = viewProjection * modelMatrix;
@@ -79,6 +83,8 @@ void GL_Mesh::RenderDepthOnly(const glm::mat4& viewProjection, GLuint shader)
 
 void GL_Mesh::RenderShader(GLuint shader)
 {
+    if(!visible) return;
+	
 	glUseProgram(shader);
     glBindVertexArray(vertexArrayObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
@@ -91,6 +97,8 @@ void GL_Mesh::RenderShader(GLuint shader)
 
 void GL_Mesh::RenderTo3DTexture(const glm::mat4& viewProjection, GLuint shader)
 {
+    if(!visible) return;
+	
     material->BindShader(shader);
     material->SetShaderUniforms();
     

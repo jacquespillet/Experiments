@@ -84,7 +84,7 @@ void NBodies::RenderGUI() {
 		ImGui::EndCombo();
 	}
 
-	ImGui::SliderFloat("softening Factor", &softeningFactor, 0.01f, 0.3f);
+	ImGui::SliderFloat("softening Factor", &softeningFactor, 0.01f, 0.6f);
 	ImGui::SliderFloat("damping", &damping, 0.7f, 1.0f);
 	ImGui::SliderFloat("timestep", &timestep, 0.001f, 0.1f);
 	ImGui::SliderFloat("maxMass", &maxMass, 1.0f, 100.0f);
@@ -389,6 +389,9 @@ void NBodies::Unload() {
 	glDeleteVertexArrays(1, &pointsVAO);
 	glDeleteBuffers(1, &pointsVBO);
 	texture.Unload();
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
 }
 
 
