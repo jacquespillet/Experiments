@@ -59,3 +59,15 @@ void GL_Camera::Scroll(float offset){
     distance -= (float)offset * distance * 0.05f;
     RecalculateLookat();   
 }
+
+void GL_Camera::GetScreenRay(glm::vec2 ndc, float aspect, glm::vec3& rayOrig, glm::vec3& rayDir)
+{	
+    float degToRad = 0.01745329251f; 
+	ndc.x = (ndc.x - 0.5f) * 2.0f;
+	ndc.y = ((1.0f - ndc.y) - 0.5f) * 2.0f;
+    float camLength = -1.0f / tan(fov / 2.0f * degToRad); 
+    glm::vec4 rayDirection = glm::normalize(glm::vec4(ndc.x * aspect, ndc.y, camLength, 0));
+    rayDir = glm::vec3(modelMatrix * rayDirection);
+    rayOrig = glm::vec3(modelMatrix * glm::vec4(0, 0, 0, 1)); 
+
+}

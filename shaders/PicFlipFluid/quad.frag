@@ -130,7 +130,8 @@ void main()
     vec3 n = (iv * vec4(normalize(cross(ddx, ddy)), 0)).xyz;
     n = normalize(n);
 
-    vec3 finalColor = vec3(0.1, 0.2, 0.7);
+    // vec3 finalColor = ;
+    vec3 finalColor = texture(colorTexture, fragUv).xyz;
 
     vec3 finalNormal = n;
     vec3 V = normalize(eyePos - worldPos);

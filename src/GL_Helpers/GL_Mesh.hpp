@@ -48,6 +48,14 @@ public:
     void RecalculateBoundingBox();
 
     void UpdateGPUBuffers();
+    
+    void SetModelMatrix(glm::mat4 _modelMatrix) {
+        this->modelMatrix = _modelMatrix;
+        this->invModelMatrix = glm::inverse(modelMatrix);
+    }
+
+    glm::vec3 GetScale() {return scale;}
+    glm::vec3 GetPosition() {return position;}
 
     glm::mat4 modelMatrix;
     glm::mat4 invModelMatrix;
@@ -61,6 +69,8 @@ public:
     std::vector<unsigned int> triangles;
 
     glm::vec3 bbMin, bbMax;
+
+    bool visible=true;
 private:    
     //GPU buffers
     unsigned int vertexBuffer;

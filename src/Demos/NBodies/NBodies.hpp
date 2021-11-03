@@ -60,8 +60,8 @@ private:
 
     const char* modes[5] = { "Random In Cube","Random On Cube", "Random On Sphere", "Random In Sphere", "Galaxies"};
     const char* currentMode = modes[0];
-    float softeningFactor = 0.0125f;
-    float damping = 0.95f;
+    float softeningFactor = 0.3125f;
+    float damping = 0.999f;
     float timestep = 0.005f;
     float maxMass = 1;
     float pointSize = 1;

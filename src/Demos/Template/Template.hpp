@@ -36,4 +36,7 @@ private:
     glm::vec3 lightDirection;
 
     bool lightDirectionChanged=false;
+
+    bool specularTextureSet=false;
+    bool normalTextureSet=false;
 };

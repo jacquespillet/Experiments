@@ -107,45 +107,51 @@ private:
 
     //TODO(Jacques): Get rid of alignas
     struct gridCell {
-        alignas(16) glm::vec3 pos;
-        alignas(4)  int type;
-        alignas(16) glm::vec3 vel; // velocity component at each of three faces on cell cube (not a real vector)
-        alignas(4)  float rhs = 0; // negative divergence for pressure solve
+        glm::vec3 pos;
+        int type;
+        glm::vec3 vel; // velocity component at each of three faces on cell cube (not a real vector)
+        float rhs = 0; // negative divergence for pressure solve
 
-        alignas(16) glm::vec3 old_vel; // old velocity for FLIP update
-
+        glm::vec3 old_vel; // old velocity for FLIP update
+        float padd0;
+        
         // elements of A matrix in pressure solve
-        alignas(4)  float a_diag = 0;
-        alignas(4)  float a_x = 0;
-        alignas(4)  float a_y = 0;
-        alignas(4)  float a_z = 0;
+        float a_diag = 0;
+        float a_x = 0;
+        float a_y = 0;
+        float a_z = 0;
 
-        alignas(4)  float pressure_guess = 0;
-        alignas(4)  float pressure = 0;
-        alignas(4)  int vel_unknown = 1;
+        float pressure_guess = 0;
+        float pressure = 0;
+        int vel_unknown = 1;
+        float padd1;
 
         gridCell(const glm::vec3& pos, const glm::vec3& vel, int type) : pos(pos), type(type), vel(vel), old_vel(vel) {}
     };
 
     struct particle {
-        alignas(16) glm::vec4 color;
-        alignas(16) glm::vec3 pos;
-        alignas(16) glm::vec3 vel;
+        glm::vec4 color;
+        glm::vec3 pos;
+        float pad0;
+        glm::vec3 vel;
+        float pad1;
 
         particle(glm::vec3 pos, glm::vec3 vel, glm::vec4 color) : color(color), pos(pos), vel(vel) {}
     };
 
 
     class transfer {
-        using byte4 = char[4]; // true type may differ in GLSL based on capabilities
-        alignas(4) byte4 u;
-        alignas(4) byte4 v;
-        alignas(4) byte4 w;
-        alignas(4) byte4 weight_u;
-        alignas(4) byte4 weight_v;
-        alignas(4) byte4 weight_w;
-        alignas(4) bool is_fluid = false;
+        float u;
+        float v;
+        float w;
+        float weight_u;
+        float weight_v;
+        float weight_w;
+        bool is_fluid = false;
+        float pad0;
     };
+
+    float massFactor = 1.0f;
 
     int density = 8;
     int gridSize = 24;

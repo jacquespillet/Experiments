@@ -30,19 +30,20 @@ REM --------------------
 
 REM ASSIMP
 set assimpLibDir= ..\ext\assimp\lib
-set assimpLib=..\ext\assimp\lib\assimp-vc140-mt.lib
+set assimpLib=..\ext\assimp\lib\assimp-vc141-mt.lib
 set assimpIncludes=..\ext\assimp\include
-set assimpBin= ..\ext\assimp\bin\assimp-vc140-mt.dll
+set assimpBin= ..\ext\assimp\bin\assimp-vc141-mt.dll
 REM --------------------
 
 REM SRC FILES
 set GL_srcFiles= ../ext/imgui_plot/imgui_plot.cpp  ../src/GL_Helpers/GL_Mesh.cpp  ../src/GL_Helpers/GL_Shader.cpp ../src/GL_Helpers/Util.cpp ../src/GL_Helpers/GL_Camera.cpp ../src/GL_Helpers/GL_Material.cpp
 set demoFiles= ../src/Demos/VXGI/VXGI.cpp ../src/Demos/RSM/RSM.cpp ../src/Demos/ISM/ISM.cpp ../src/Demos/LPV/LPV.cpp ../src/Demos/SH/SH.cpp ../src/Demos/BitonicSort/BitonicSort.cpp ../src/Demos/Template/Template.cpp
 set demoFiles= %demoFiles% ../src/Demos/NBodies/NBodies.cpp ../src/Demos/FFT/FFT.cpp  ../src/Demos/Ocean_FFT/Ocean_FFT.cpp  ../src/Demos/PicFlipFluid/PicFlipFluid.cpp 
+set demoFiles= %demoFiles% ../src/Demos/DeferredDecals/DeferredDecals.cpp
 REM --------------------
 
 
-set compilerFlags= /DEBUG -MP -MT -nologo -EHa- -Od -Oi -W4 -Z7 -EHsc -wd4201 -wd4310 -wd4100  /I ../src /I ..\ext\stb /I %dearimgui% /I %glfwInclude%  /I %glewIncludes% /I %dearimguiPlotInclude% /I %glmInclude% /I %assimpIncludes%
+set compilerFlags= /DEBUG -MP -MT -nologo -EHa- -O2 -Oi -W4 -Z7 -EHsc -wd4201 -wd4310 -wd4100  /I ../src /I ..\ext\stb /I %dearimgui% /I %glfwInclude%  /I %glewIncludes% /I %dearimguiPlotInclude% /I %glmInclude% /I %assimpIncludes%
 set linkerFlags=  -opt:ref Gdi32.lib Shell32.lib opengl32.lib %dearimguiObj% %glfwLib%  %glewLib% %assimpLib%
 
 IF NOT EXIST .\build mkdir .\build

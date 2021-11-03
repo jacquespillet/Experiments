@@ -31,7 +31,7 @@ void main()
     float diffuse = max(0.0, dot(N, -lightDir));
     
     // color = vec4(fragDepth, fragDepth, fragDepth, 1);
-    color = clipSpacePos;
+    color = outColor;
     // color = vec4(1,0,0,1);
     depth = fragDepth;
     gl_FragDepth = fragDepth;
