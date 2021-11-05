@@ -1,46 +1,29 @@
 //inputs
-#version 400 core
+#version 430 core
 //output
 layout(location = 0) out vec4 outputColor; 
+// layout(location = 1) out vec4 outputDepth; 
 //main
 #define PI 3.1415926535897932384626433832795
 
-in vec3 fragNormal;
-in vec3 fragWorldPos;
-in vec3 fragTangent;
-in vec3 fragBitangent;
 in vec2 fragUv;
-in vec3 fragToEyeWorld;
-in vec3 fragToLightWorld;
-in vec3 fragToEyeTangent;
-in vec4 depthMapUV;
 
- 
-uniform sampler2D diffuseTexture;
-uniform sampler2D specularTexture;
-uniform sampler2D opacityTexture;
-uniform sampler2D ambientTexture;
+uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
+uniform sampler2D positionTexture;
+uniform sampler2D ssaoTexture;
 
-uniform int diffuseTextureSet;
-uniform int specularTextureSet;
-uniform int opacityTextureSet;
-uniform int ambientTextureSet;
-uniform int normalTextureSet;
-
-
-uniform vec3 mat_ambient;
-uniform vec3 mat_diffuse;
-uniform vec3 mat_specular;
-uniform vec3 mat_emissive;
-uniform vec3 mat_transparent;
-uniform float mat_shininess;
-uniform float mat_opacity;
-
-uniform vec3 cameraPosition;
 uniform vec3 lightDirection;
+uniform vec3 cameraPosition;
+uniform int numLights;
+uniform mat4 inverseViewMatrix;
+uniform float ambient;
 
-uniform float metallic = 0.1;
+float roughness = 0.8;
+float metallic = 0.1;
+
+uniform int renderSSAO;
+uniform int ssaoEnabled;
 
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -108,50 +91,46 @@ void BSDF(vec3 V, vec3 L, vec3 normal, vec3 finalColor, vec3 radiance, out vec3 
 
 void main()
 {
+    vec4 sampleDiffuse = texture(colorTexture, fragUv);
+    vec3 N = (inverseViewMatrix *vec4(texture(normalTexture, fragUv).xyz, 0.0f)).xyz;
+    vec3 samplePosition = (inverseViewMatrix * vec4(texture(positionTexture, fragUv).xyz, 1.0f)).xyz;
+    float AmbientOcclusion=1;
+    if(ssaoEnabled>0) AmbientOcclusion = texture(ssaoTexture, fragUv).r;
 
     //Sample diffuse texture
     //Sample global alpha
-    vec4 sampleDiffuse =  texture(diffuseTexture, fragUv);
-    vec3 diffuseColor     = pow(sampleDiffuse.rgb, vec3(2.2));
+    // vec3 diffuseColor     = pow(sampleDiffuse.rgb, vec3(2.2));
+    vec3 diffuseColor     = sampleDiffuse.rgb;
     float alpha = sampleDiffuse.a;
     
-    float roughness = 0.4;
-    if(specularTextureSet>0)
-    {
-        roughness = 1 - texture(specularTexture, fragUv).r;
-    }
-    
-    //Discard if less than 0.5
-    if(alpha < 0.5) {
-        discard;
-    }
-    
-    // Normal, light direction and eye direction in world coordinates
-    vec3 N = fragNormal; //CalBump()
-    if(normalTextureSet>0) {
-        mat3 TBN = mat3(fragTangent, fragBitangent, fragNormal);
-        N = texture(normalTexture, fragUv).rgb;
-        N = N * 2.0 - 1.0;   
-        N = normalize(TBN * N); 
-    }
 
-    vec3 V = normalize(cameraPosition - fragWorldPos);
+    vec3 V = normalize(cameraPosition - samplePosition);
     vec3 R = reflect(-V, N); 
     vec3 F0 = mix(vec3(0.04), diffuseColor, metallic);
     vec3 Lo = vec3(0.0);
         
 
     vec3 L = -lightDirection;    
-    vec3 radiance = 5 * vec3(1,1,1);        
+    vec3 radiance = vec3(1,1,1);        
     vec3 specular;
     vec3 diffuse;
     BSDF(V, L, N, diffuseColor, radiance, diffuse, specular, roughness);
     float NdotL = max(dot(N, L), 0.0);                
     Lo += (diffuse + specular) * NdotL; 
     
-    vec3 ambientColor =vec3(0.1) * diffuseColor;    
-    vec3 finalColor= ambientColor + Lo;
-    float gamma = 2.2;
-    finalColor = pow(finalColor, vec3(1.0/gamma));
-    outputColor = vec4(finalColor, 1.0f);
+    if(renderSSAO>0)
+    {
+        outputColor = vec4(AmbientOcclusion,AmbientOcclusion,AmbientOcclusion, 1.0f);
+    }
+    else
+    {
+        // vec3 ambientColor =vec3(0.1) * diffuseColor;
+        vec3 ambientColor = vec3(ambient * diffuseColor * AmbientOcclusion ); // here we add occlusion factor
+        vec3 finalColor= ambientColor + Lo;
+        // vec3 finalColor= ambientColor;
+        float gamma = 2.2;
+        finalColor = pow(finalColor, vec3(1.0/gamma));
+        finalColor ;
+        outputColor = vec4(finalColor, 1.0f);
+    }
 }

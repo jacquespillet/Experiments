@@ -27,6 +27,7 @@ float Clamp01(float input);
 
 float Clamp(float input, float min, float max);
 
+float Lerp(float a, float b, float f);
 
 bool RayTriangleIntersection( 
     glm::vec3 &orig, glm::vec3 &dir, 

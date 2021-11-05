@@ -26,6 +26,7 @@
 #include "Demos/Template/Template.hpp"
 #include "Demos/Boids/Boids.hpp"
 #include "Demos/TiledRendering/TiledRendering.hpp"
+#include "Demos/SSAO/SSAO.hpp"
 
 
 
@@ -124,6 +125,12 @@ struct DemoManager {
             break;
         case 14:
             demo = new TiledRendering;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 15:
+            demo = new SSAO;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -397,6 +404,10 @@ private:
             if(ImGui::Button("Tiled Rendering", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(14);
+            }
+            if(ImGui::Button("SSAO", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(15);
             }
 
             demoManager.RenderGUI();
