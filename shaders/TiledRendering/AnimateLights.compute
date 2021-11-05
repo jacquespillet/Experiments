@@ -1,0 +1,24 @@
+#version 430
+
+struct PointLight
+{
+    vec3 position;
+    float radius;
+    vec4 color;
+    vec4 initialPosition;
+};
+
+layout (std430, binding = 0) buffer lightsBlock {
+   PointLight lights [];
+};
+
+uniform float time;
+
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    lights[index].position.x = lights[index].initialPosition.x + cos(time);
+    lights[index].position.z = lights[index].initialPosition.z + sin(time);
+    lights[index].position.y = lights[index].initialPosition.y + sin(time);
+}

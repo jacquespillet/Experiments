@@ -1,0 +1,81 @@
+Tiled rendering
+We subdivide the screen into 2d tiles.
+in this implementation, each tile is 16x16.
+
+first step is doing a depth prepass that writes into a depth texture.
+
+we then do a compute prepass that runs for each each pixel, using groups of the size of the tile.
+First, we calculate the min and max depth inside of each tile.
+this is done using atomic adds on shared memory variables.
+
+Then, we have to calculate a little frustum cone for the current tile.
+each tile has a single view frustum, so to calculate it, only one thread does it and stores it into the shared memory, and barrier() after.
+We first calculate the frustum in local view space, and then transform it with the view matrix to get a world space frustum.
+
+After, each thread in the group corresponds to one light. since we only have 16x16 threads, we have to do multiple passes.
+for each light, we check if it's inside the bounds of the current tile.
+if it is inside the tile we store it inside a shared list using atomicAdds for incrementing and finding appropriate index.
+
+once all the shared lists are built, we store them into a global memory buffer.
+this buffer is of the size numTiles * numLights.
+each tile is allocated a chunk of this buffer to store its lights in.
+Therefore there's no concurrency when each group fills in the buffer.
+if there's less than 1024 lights in one tile (which is always the case), we need a way to find how many lights there actually are inside the tile.
+to do this, we put a -1 in the cell after the last one in the global buffer so when we shade, we know we have to stop.
+
+Shading:
+in fragment shader, we can compute from gl_FragCoord the tile in which we are.
+from there, we can find the start index of the current tile in the global buffer.
+we can iterate into this chunk until we find a -1.
+
+
+Clustered rendering :
+We subdivide the entire view frustum into a set of 3d clusters (equivalent of 2d tiles)
+we use a grid of 16x9x24.
+
+First step : Build the clusters.
+To store cluster information, we store them under the form of aabb's, so just a min and max vector.
+We run a compute shader with size of the cluster grid, one thread per group.
+
+we can calculate into which depth tile we fall into using the workGroup.z and the near and far clip planes of the camera :
+float tileNear  = -zNear * pow(zFar/ zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+float tileFar   = -zNear * pow(zFar/ zNear, (gl_WorkGroupID.z + 1) /float(gl_NumWorkGroups.z));
+
+we then calculate the 2d bounds of the current 2d tile, and we translate this into the view coordinates.
+we use a depth of -1 and multiply by inverse projection to do it.
+we now have the position of the current cluster on to the view plane.
+
+Now we have to find the actual depth of the current box.
+to do it, we cast a ray from the eye to the view space position(min and max), and check where it intersects the tileNear and tileFar.
+
+we have now 4 points from which we can derive the AABB of the box.
+
+Second step : light culling
+we run a compute shader with group size of the clusters (16, 9, 24)
+each group thread corresponds to one cluster.
+actually, we cannot use groups this big, so we have to use split into smaller depths (4) and dispatch(1, 1, 6)
+
+we use a shared light buffer inside each group, of the size of the thread group.
+in a first step, each thread corresponds to one light.
+each thread fills in the light buffer with its current index.
+
+then, each thread corresponds back to a cluster.
+each thread will go through the shared list of lights and check if it intersects with its aabb.
+if it does, it increments a thread local index and index buffer of the light.
+
+when this is done, each thread has its own list of intersecting lights.
+we have to then store this information into a global buffer.
+
+to do it, we have a 2 buffers :
+one buffer that just contains light indices.
+we keep track of a global counter that will be atomic added by each thread with its own number of intersecting lights.
+each thread then fills up the global buffer with its intersecting indices
+
+to be able to figure out which chunks correspond to which cluster in the first buffer, we have another buffer.
+its size is the size of the cluster grid, so 16x9x24.
+inside each cell, we store a start index in the global index buffer and the amount of intersecting lights.
+
+Shading:
+at each fragment, we figure out in which cluster we're in.
+we then find the corresponding start index and number of lights from the second buffer.
+we then read the first buffer with these informations to shade the scene.

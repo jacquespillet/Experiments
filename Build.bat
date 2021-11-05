@@ -39,7 +39,7 @@ REM SRC FILES
 set GL_srcFiles= ../ext/imgui_plot/imgui_plot.cpp  ../src/GL_Helpers/GL_Mesh.cpp  ../src/GL_Helpers/GL_Shader.cpp ../src/GL_Helpers/Util.cpp ../src/GL_Helpers/GL_Camera.cpp ../src/GL_Helpers/GL_Material.cpp
 set demoFiles= ../src/Demos/VXGI/VXGI.cpp ../src/Demos/RSM/RSM.cpp ../src/Demos/ISM/ISM.cpp ../src/Demos/LPV/LPV.cpp ../src/Demos/SH/SH.cpp ../src/Demos/BitonicSort/BitonicSort.cpp ../src/Demos/Template/Template.cpp
 set demoFiles= %demoFiles% ../src/Demos/NBodies/NBodies.cpp ../src/Demos/FFT/FFT.cpp  ../src/Demos/Ocean_FFT/Ocean_FFT.cpp  ../src/Demos/PicFlipFluid/PicFlipFluid.cpp 
-set demoFiles= %demoFiles% ../src/Demos/DeferredDecals/DeferredDecals.cpp
+set demoFiles= %demoFiles% ../src/Demos/DeferredDecals/DeferredDecals.cpp ../src/Demos/PathTracer/PathTracer.cpp  ../src/Demos/Boids/Boids.cpp  ../src/Demos/TiledRendering/TiledRendering.cpp 
 REM --------------------
 
 

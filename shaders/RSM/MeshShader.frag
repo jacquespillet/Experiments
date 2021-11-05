@@ -129,11 +129,15 @@ void main()
         if(normalDiff < 0.9)
         {
             vec3 indirect = DoReflectiveShadowMapping();
+            float gamma = 2.2;
+            indirect = pow(indirect, vec3(1.0/gamma));
             outputColor += vec4(indirect, 0);
         }
         else
         {
             vec3 indirect = texture(lowResRSM, st).xyz;
+            float gamma = 2.2;
+            indirect = pow(indirect, vec3(1.0/gamma));
             outputColor += vec4(indirect, 0);
         }
     }

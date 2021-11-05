@@ -1,0 +1,9 @@
+Render the scene in a geometry buffer, usual deferred rendering
+
+render an AABB on top of the geometry buffer for each decal.
+in the fragment shader of the box, check the world position underneath, and check if it's within the box.
+if it's not, discard the pixel.
+
+it results in only the fragments on the underlying surface being shaded.
+
+we can then compute the texture coordinates checking the local position in the box ([-0.5, 0.5]) and adding 0.5 to it to get [0-1] interval

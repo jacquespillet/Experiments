@@ -398,6 +398,15 @@ int RandomInt(int min, int max)
 	return Result;
 }
 
+glm::vec3 RandomVec3(glm::vec3 min, glm::vec3 max)
+{
+    glm::vec3 Result = {
+        RandomFloat(min.x, max.x),
+        RandomFloat(min.y, max.y),
+        RandomFloat(min.z, max.z)
+    };
+    return Result;
+}
 
 bool RayTriangleIntersection( 
     glm::vec3 &orig, glm::vec3 &dir, 

@@ -72,10 +72,12 @@ public:
 
     void LoadTexture(std::string filename, TEXTURE_TYPE type)
     {
+        TextureCreateInfo info = {};
         switch (type)
         {
         case DIFFUSE:
-            diffuseTexture = GL_Texture(filename, {});
+            info.srgb=true;
+            diffuseTexture = GL_Texture(filename, info);
             diffuseTextureSet=true;
             break;
         case SPECULAR:

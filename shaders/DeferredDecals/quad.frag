@@ -87,11 +87,9 @@ void BSDF(vec3 V, vec3 L, vec3 normal, vec3 finalColor, vec3 radiance, out vec3 
 
 void main()
 {
-    vec4 color = texture(colorTexture, fragUv);
     vec3 worldPos = texture(positionTexture, fragUv).xyz;
 
-    outputColor = color;
-    
+
     // // // calculate normal
     vec3 n = texture(normalTexture, fragUv).xyz;
     n = normalize(n);
@@ -126,5 +124,9 @@ void main()
     Lo += (diffuse + specular) * NdotL2; 
     
     vec3 ambientColor =vec3(ambient) * finalColor;
-    outputColor = vec4(ambientColor + Lo, 1.0f);
+    
+    vec3 color= ambientColor + Lo;
+    float gamma = 2.2;
+    color = pow(color, vec3(1.0/gamma));
+    outputColor = vec4(color, 1.0f);
 }

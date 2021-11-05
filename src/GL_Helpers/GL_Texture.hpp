@@ -9,6 +9,7 @@ struct TextureCreateInfo {
     GLint minFilter = GL_LINEAR_MIPMAP_LINEAR;
     GLint magFilter = GL_LINEAR;
     bool generateMipmaps=true;
+    bool srgb=false;
 };
 
 class GL_Texture {
@@ -26,19 +27,39 @@ public:
         stbi_set_flip_vertically_on_load(true);  
         unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nChannels, 0);
         
-        GLint texType = 0;
-        if(nChannels == 4) {
-            texType = GL_RGBA;
-        } else if(nChannels == 3) {
-            texType = GL_RGB;
-        } else if(nChannels == 1) {
-            texType = GL_RED;
+        GLint texFormat = 0;
+        GLint texFormatInternal = 0;
+        if(createInfo.srgb)
+        {
+            if(nChannels == 4) {
+                texFormat = GL_RGBA;
+                texFormatInternal = GL_SRGB_ALPHA;
+            } else if(nChannels == 3) {
+                texFormat = GL_RGB;
+                texFormatInternal = GL_SRGB;
+            } else if(nChannels == 1) {
+                texFormat = GL_RED;
+                texFormatInternal = GL_RED;
+            }            
+        }
+        else
+        {
+            if(nChannels == 4) {
+                texFormat = GL_RGBA;
+                texFormatInternal = GL_RGBA;
+            } else if(nChannels == 3) {
+                texFormat = GL_RGB;
+                texFormatInternal = GL_RGB;
+            } else if(nChannels == 1) {
+                texFormat = GL_RED;
+                texFormatInternal = GL_RED;
+            }
         }
 
         std::cout << "Texture:Constructor: Num channels " << filename << "  " <<  nChannels << std::endl;
         if (data)
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, texType, width, height, 0, texType, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, texFormatInternal, width, height, 0, texFormat, GL_UNSIGNED_BYTE, data);
         }
         else
         {

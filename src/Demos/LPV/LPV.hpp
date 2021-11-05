@@ -103,8 +103,8 @@ private:
     bool displayGI=true;
     bool displayShadows=true;
     bool displayDirectDiffuse=true;
-    float ambient=0.1f;
-    float specular=0.5f;
+    float ambient=0.01f;
+    float specular=0.1f;
     float GIIntensity=1.0f;
     
 };

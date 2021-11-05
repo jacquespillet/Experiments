@@ -19,6 +19,8 @@ void BindSSBO(GLuint shader, GLuint ssbo, std::string name, GLuint bindingPoint)
 
 float RandomFloat(float min, float max);
 
+glm::vec3 RandomVec3(glm::vec3 min, glm::vec3 max);
+
 int RandomInt(int min, int max);
 
 float Clamp01(float input);

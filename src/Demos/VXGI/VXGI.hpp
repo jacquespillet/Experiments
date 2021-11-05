@@ -71,7 +71,7 @@ private:
     bool showAmbient=true;
     bool showSpecular=true;
 
-    float directAmbient=0.2f;
+    float directAmbient=0.02f;
     float specularity=0.2f;
 
     bool lightDirectionChanged=false;
