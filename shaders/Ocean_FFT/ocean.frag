@@ -92,7 +92,7 @@ void BSDF(vec3 V, vec3 L, vec3 normal, vec3 finalColor, vec3 radiance, out vec3 
 
 void main()
 {		
-    vec3 finalColor = vec3(0.1, 0.2, 0.7);
+    vec3 waterColor = vec3(0.1, 0.2, 0.7);
 
     vec3 finalNormal = texture(normalTexture, fragUv).rgb;
     vec3 V = normalize(cameraPosition - fragWorldPos);
@@ -100,7 +100,7 @@ void main()
     vec3 R = reflect(-V, finalNormal); 
 
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, finalColor, metallic);
+    F0 = mix(F0, waterColor, metallic);
 
     vec3 Lo = vec3(0.0);
         
@@ -110,16 +110,21 @@ void main()
     vec3 radiance = lightIntensity * vec3(1,1,1);        
     vec3 specular;
     vec3 diffuse;
-    BSDF(V, L, finalNormal, finalColor, radiance, diffuse, specular, roughness);
+    BSDF(V, L, finalNormal, waterColor, radiance, diffuse, specular, roughness);
     float NdotL = max(dot(finalNormal, L), 0.0);                
     Lo += (diffuse + specular) * NdotL; 
 
     
     vec3 L2 = vec3(1, -1, 1);    
-    BSDF(V, L, finalNormal, finalColor, radiance, diffuse, specular, roughness);
+    BSDF(V, L, finalNormal, waterColor, radiance, diffuse, specular, roughness);
     float NdotL2 = max(dot(finalNormal, L2), 0.0);                
     Lo += (diffuse + specular) * NdotL2; 
     
-    vec3 ambientColor =vec3(ambient) * finalColor;
-    outputColor = vec4(ambientColor + Lo, 1.0f);
+    vec3 ambientColor =vec3(ambient) * waterColor;
+    vec3 finalColor = ambientColor + Lo;
+    float gamma = 2.2;
+    finalColor = pow(finalColor, vec3(1.0/gamma));
+    outputColor = vec4(finalColor, 1.0f);
+
+
 }

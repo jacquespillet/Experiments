@@ -27,6 +27,7 @@
 #include "Demos/Boids/Boids.hpp"
 #include "Demos/TiledRendering/TiledRendering.hpp"
 #include "Demos/SSAO/SSAO.hpp"
+#include "Demos/SSR/SSR.hpp"
 
 
 
@@ -131,6 +132,12 @@ struct DemoManager {
             break;
         case 15:
             demo = new SSAO;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 16:
+            demo = new SSR;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -408,6 +415,10 @@ private:
             if(ImGui::Button("SSAO", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(15);
+            }
+            if(ImGui::Button("SSR", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(16);
             }
 
             demoManager.RenderGUI();

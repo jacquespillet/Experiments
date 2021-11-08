@@ -56,6 +56,8 @@ public:
         SetVec3("mat_transparent", transparent);
         SetFloat("mat_shininess", shininess);
         SetFloat("mat_opacity", opacity);
+        SetFloat("mat_roughness", roughness);
+        SetFloat("mat_metallic", metallic);
 
 
         return true;
@@ -137,4 +139,6 @@ public:
 	glm::vec3 transparent;
 	float shininess;
 	float opacity;
+    float roughness = 1.0f;
+    float metallic = 0.0f;
 };

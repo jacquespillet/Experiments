@@ -23,7 +23,7 @@ void SSAO::Load() {
     dragon = MeshFromFile("resources/models/dragon/dragon.obj", false, 0);
     dragon->SetScale(glm::vec3(10, 10, 10));
     dragon->SetPos(glm::vec3(0, 2, 0));
-    dragones.push_back(dragon);
+    Meshes.push_back(dragon);
     GL_Material *mat = new GL_Material();
     dragon->material = mat;
 
@@ -301,9 +301,9 @@ void SSAO::Render() {
         screenSpaceQuad.RenderShader(blurShader.programShaderObject);
         glUseProgram(0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //resolve g buffer
     }
 
+    //resolve g buffer
     glm::mat4 inverseView = glm::inverse(cam.GetViewMatrix());
 
     glUseProgram(resolveGBufferShader.programShaderObject);

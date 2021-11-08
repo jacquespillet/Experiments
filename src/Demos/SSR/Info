@@ -1,0 +1,14 @@
+We render the scene on a g buffer with world space normals, positions, depth and color.
+
+with these buffer we do a screen space pass for rendering reflections.
+for each pixel, we fetch the position and normal. we calculate distance from fragment to camera.
+we calculate a world space perfect reflection vector from the position and view direction.
+we tilt that vector with a random noise value.
+
+we march along the reflection ray.
+for each step, we project the position back in screen space and compare the value with the depth buffer.
+if the screen space value is outside of the screen, we stop marching.
+if the value is higher than the depth buffer value, we are behing a surface --> we need to stop marching.
+we store the last step position and mark the pixel as reflective.
+
+in the last render pass, we blend the reflections using roughness parameter and the flagged reflective pixels.  
