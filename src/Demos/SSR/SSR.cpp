@@ -10,8 +10,7 @@
 
 #include "imgui.h"
 
-SSR::SSR() {
-    blurCount=1;
+SSR::SSR() : blurCount(1) {
 }
 
 void SSR::Load() {
@@ -195,7 +194,9 @@ void SSR::RenderGUI() {
     }
 
     ImGui::SliderInt("Blur passes", &blurCount, 0, 10);
-    
+    ImGui::SliderFloat("Bias", &bias, 1.0f, 6.0f);
+    ImGui::SliderFloat("Roughness", &Meshes[46]->material->roughness, 0, 1);
+
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
 
@@ -248,6 +249,7 @@ void SSR::Render() {
     
     glUniform1f(glGetUniformLocation(ssrShader.programShaderObject, "zNear"), cam.GetNearPlane());
     glUniform1f(glGetUniformLocation(ssrShader.programShaderObject, "zFar"), cam.GetFarPlane());
+    glUniform1f(glGetUniformLocation(ssrShader.programShaderObject, "bias"), bias);
     
     glUniform2fv(glGetUniformLocation(ssrShader.programShaderObject, "screenResolution"), 1, glm::value_ptr(glm::vec2(windowWidth, windowHeight)));
     glUniform2fv(glGetUniformLocation(ssrShader.programShaderObject, "invNoiseResolution"), 1, glm::value_ptr(glm::vec2(1.0f / (float)noiseTexture.width, 1.0f / (float)noiseTexture.height)));

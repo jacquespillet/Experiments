@@ -28,6 +28,7 @@
 #include "Demos/TiledRendering/TiledRendering.hpp"
 #include "Demos/SSAO/SSAO.hpp"
 #include "Demos/SSR/SSR.hpp"
+#include "Demos/OIT/OIT.hpp"
 
 
 
@@ -138,6 +139,12 @@ struct DemoManager {
             break;
         case 16:
             demo = new SSR;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 17:
+            demo = new OIT;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -419,6 +426,10 @@ private:
             if(ImGui::Button("SSR", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(16);
+            }
+            if(ImGui::Button("OIT", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(17);
             }
 
             demoManager.RenderGUI();

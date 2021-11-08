@@ -6,9 +6,9 @@
 #include "GL_Helpers/GL_Mesh.hpp"
 #include "GL_Helpers/GL_Camera.hpp"
 
-class SSR : public Demo {
+class OIT : public Demo {
 public : 
-    SSR();
+    OIT();
     void Load();
     void Render();
     void RenderGUI();
@@ -28,33 +28,27 @@ private:
         
     GL_Camera cam;
 
-    std::vector<GL_Mesh*> Meshes;
+    GL_Shader MeshShader;
+
+    std::vector<GL_Mesh*> SolidMeshes;
+    std::vector<GL_Mesh*> TransparentMeshes;
     std::vector<GL_Material*> Materials;
 
     glm::vec3 lightDirection;
 
     bool lightDirectionChanged=false;
 
-    void InitGeometryBuffer();
-    GLuint framebuffer;
-    GLuint colorTexture;
-    GLuint normalTexture;
-    GLuint positionTexture;
-    GLuint depthTexture;
-    GL_Shader renderGBufferShader;
-    GL_Shader resolveGBufferShader;
+    void InitOIT();
+    GLuint opaqueFramebuffer;
+    GLuint opaqueTexture;
+    GLuint opaqueDepthTexture;
+    GLuint transparentFramebuffer;
+    GLuint accumulationTexture;
+    GLuint revealTexture;
     GL_Mesh screenSpaceQuad;
+    GL_Shader accumulationShader;
+    GL_Shader compositionShader;
+    GL_Shader resolveShader;
 
-    void InitSSR();
-    GLuint ssrFramebuffer;
-    GLuint ssrTexture;
-    GL_Shader ssrShader;
-    GL_Texture noiseTexture;
-    
-    GLint blurComputeShader;
-    GLuint blurTexture;
-
-    int blurCount = 1;
-    float bias = 2.0f;
-
+    float alpha = 0.1f;
 };

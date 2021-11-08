@@ -1,0 +1,19 @@
+We render the opaque and transparent objects in different passes.
+
+First pass, we render the opaque objects as usual.
+
+in a second pass, we render the transparent objects using 2 render targets.
+First one is an accumulator, so we use a ADD blend function using ONE and ONE operators.
+We accumulate the colors of the transparents objects, weighted by their transparency value and a weight function.
+the weight function is computer from alpha and depth value.
+
+The second target is a reveal buffer in which we store the transparency value.
+We just add 1 minus src alpha to the buffer every time we render the pixel
+
+there is no depth test performed in this pass.
+
+in a second pass, we composite the transparents and the opaques.
+for a given pixel, we fetch the accumulation value and the reveal value.
+we divide the accumulator rgb values by its alpha value.
+
+we set the alpha of the fragment to be 1 - reveal

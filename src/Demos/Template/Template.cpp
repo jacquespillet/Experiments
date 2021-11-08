@@ -15,20 +15,7 @@ Template::Template() {
 
 void Template::Load() {
 
-    MeshShader = GL_Shader();
-    std::ifstream stream("shaders/Template/MeshShader.vert");
-    std::stringstream vertBuffer;
-    vertBuffer << stream.rdbuf();
-    MeshShader.vertSrc= vertBuffer.str();
-
-    stream = std::ifstream ("shaders/Template/MeshShader.frag");
-    std::stringstream fragBuffer;
-    fragBuffer << stream.rdbuf();
-    MeshShader.fragSrc= fragBuffer.str();
-
-    stream.close();
-    std::cout << "StandardShaders:Compile: Compiling unlitMeshShader" << std::endl; 
-    MeshShader.Compile();      
+    MeshShader = GL_Shader("shaders/OIT/MeshShader.vert", "", "shaders/OIT/MeshShader.frag");
 
     MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
     for(int i=0; i<Meshes.size(); i++)

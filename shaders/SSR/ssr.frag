@@ -22,6 +22,7 @@ uniform float zFar;
 uniform vec2 screenResolution;
 uniform vec2 invNoiseResolution;
 uniform float downScale;
+uniform float bias;
 
 in vec2 fragUv;
 
@@ -69,7 +70,7 @@ void main()
     vec3 worldNormal = texture(normalTexture, fragUv).rgb;
     
     //Calculate start sampling distance
-    float sampleDistance=distanceToCamera/NUM_SAMPLES_HALF*2;
+    float sampleDistance=distanceToCamera/NUM_SAMPLES_HALF*1.5;
     
     //Calculate world space reflection, scaled by the sample distance
     vec3 dir =reflect(viewDir, worldNormal) * sampleDistance;//sample dis
@@ -81,7 +82,7 @@ void main()
     
     //Calculate sampling position. Multiply the direction vector with a random number
     //pos = dir*noise*4  + worldPosition;
-    vec3 pos = dir*noise* 2+ worldPosition;
+    vec3 pos = dir*noise* bias+ worldPosition;
     //return vec4 (pos, 1);
     
     //Contains whether we hit or not
