@@ -1,0 +1,47 @@
+#version 430
+
+struct Cluster
+{
+    vec3 min;
+    int isActive;
+    vec3 max;
+    float pad1;
+};
+
+layout(std430, binding = 2) buffer clustersBlock {
+	Cluster clusters[];
+};
+
+uniform sampler2D depthTexture;
+uniform vec2 screenResolution;
+uniform float zNear;
+uniform float zFar;
+uniform uint tileSizeInPx;
+uniform float scale;
+uniform float bias;
+uniform uvec3 numClusters;
+
+float linearDepth(float depthSample){
+    float depthRange = 2.0 * depthSample - 1.0;
+    float linear = 2.0 * zNear * zFar / (zFar + zNear - depthRange * (zFar - zNear));
+    return linear;
+}
+
+uint getClusterIndex(float z, vec2 fragCoord){
+    // Uses equation (3) from Building a Cluster Grid section
+    uint clusterZVal     = uint(max(log2(linearDepth(z)) * scale + bias, 0.0));
+    uvec3 clusters    = uvec3( uvec2( fragCoord / tileSizeInPx), clusterZVal);
+    uint clusterIndex = clusters.x +
+                        numClusters.x * clusters.y +
+                        (numClusters.x * numClusters.y) * clusters.z;
+    return clusterIndex;
+}
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+void main() {
+    vec2 uv = vec2(gl_GlobalInvocationID.xy) / screenResolution;
+    float z = texture(depthTexture, uv).x;
+
+    uint clusterID = getClusterIndex(z, gl_GlobalInvocationID.xy);
+    clusters[clusterID].isActive=1;
+}

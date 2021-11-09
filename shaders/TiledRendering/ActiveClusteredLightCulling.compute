@@ -1,0 +1,108 @@
+#version 430
+
+
+struct PointLight
+{
+    vec3 position;
+    float radius;
+    vec4 color;
+    vec4 currentPosition;
+};
+
+layout (std430, binding = 0) readonly buffer lightsBlock {
+   PointLight lights [];
+};
+
+struct Cluster
+{
+    vec3 min;
+    int isActive;
+    vec3 max;
+    float pad1;
+};
+
+layout(std430, binding = 2) buffer clustersBlock {
+	Cluster clusters[];
+};
+
+struct GridIndex
+{
+    uint startIndex;
+    uint size;
+    uint pad[2];
+};
+
+layout(std430, binding = 3) buffer gridIndiceslock {
+	GridIndex gridIndices[];
+};
+
+layout(std430, binding = 4) buffer lightIndicesBlock {
+	uint lightIndices[];
+};
+
+layout(std430, binding = 5) buffer counterBlock {
+	uint globalLightCounter;
+};
+
+layout(std430, binding = 6) buffer activeClustersBlock {
+	uint activeClusters[];
+};
+
+layout(std430, binding = 7) buffer counter {
+	uint globalActiveClusterCount[];
+};
+
+
+
+uniform mat4 viewMatrix;
+uniform int numLights;
+
+float sqDistPointAABB(vec3 point, uint tile){
+    float sqDist = 0.0;
+    Cluster currentCell = clusters[tile];
+    for(int i = 0; i < 3; ++i){
+        float v = point[i];
+        if(v < currentCell.min[i]){
+            sqDist += (currentCell.min[i] - v) * (currentCell.min[i] - v);
+        }
+        if(v > currentCell.max[i]){
+            sqDist += (v - currentCell.max[i]) * (v - currentCell.max[i]);
+        }
+    }
+    return sqDist;
+}
+bool testSphereAABB(uint light, uint tile){
+    float radius = lights[light].radius;
+    vec3 center  = vec3(viewMatrix * vec4(lights[light].position, 1.0));
+    float squaredDistance = sqDistPointAABB(center, tile);
+
+    return squaredDistance <= (radius * radius);
+}
+
+///Go through each cluster, checking which light intersects with them.
+//each thread is one cluster.
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+void main() {
+    if(gl_GlobalInvocationID.x > globalActiveClusterCount[0]) return;
+    uint tileIndex = activeClusters[gl_GlobalInvocationID.x];
+    
+    uint visibleLightCount = 0;
+    uint visibleLightIndices[100];
+
+    for( uint light = 0; light < numLights; ++light){
+        if( testSphereAABB(light, tileIndex) ){
+            visibleLightIndices[visibleLightCount] = light;
+            visibleLightCount += 1;
+        }
+    }
+
+    uint offset = atomicAdd(globalLightCounter, visibleLightCount);
+
+    for(uint i = 0; i < visibleLightCount; ++i){
+        lightIndices[offset + i] = visibleLightIndices[i];
+    }
+
+    gridIndices[tileIndex].startIndex = offset;
+    gridIndices[tileIndex].size = visibleLightCount;
+}

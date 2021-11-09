@@ -65,6 +65,8 @@
         "random": "cpp",
         "cinttypes": "cpp",
         "complex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp"
     }
 }

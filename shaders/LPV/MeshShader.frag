@@ -118,11 +118,14 @@ void main()
     }
 	
     {
-        outputColor = vec4(
-                            diffuseReflection 
+        
+        vec3 color= diffuseReflection 
                             + ambient * diffuseColor.rgb
                             + specularReflection
-                            + GI
+                            + GI;
+        float gamma = 2.2;
+        color = pow(color, vec3(1.0/gamma));
+        outputColor = vec4( color
                             , alpha);
     }
 }

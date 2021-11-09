@@ -1,0 +1,23 @@
+Algo:
+
+Setup :
+Create an array of random vectors in a hemisphere pointing in +z direction.
+Create a tiling texture of random 2D vectors.
+
+We first render a g buffer with view space positions and normals
+
+Then we do SSAO pass.
+for each pixel, we create an tangent space basis using the pixel normal and a random vector.
+
+then we start sampling surrounding pixels using the random hemisphere vectors.
+we transform each hemisphere vector into the tangent space basis.
+
+we then add this vector to the current position to get the view space sample. 
+We find its position in the depth texture and compare its depth with the current value.
+if it's in front, there's no occlusion. if it's behind, there is occlusion.
+To handle edge cases where the fragment is on an edge of an object and there is a big depth difference around, we use a rangeCheck operation.
+we maintain an occlusion fator using this rule that we then store into the map.
+
+to get rid of the 4x4 noise, we can just apply a 4x4 blur on the whole map in another pass.
+
+we then sample the AO texture in the rendering pass.

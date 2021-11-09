@@ -22,7 +22,13 @@
 #include "Demos/Ocean_FFT/Ocean_FFT.hpp"
 #include "Demos/PicFlipFluid/PicFlipFluid.hpp"
 #include "Demos/DeferredDecals/DeferredDecals.hpp"
+#include "Demos/PathTracer/PathTracer.hpp"
 #include "Demos/Template/Template.hpp"
+#include "Demos/Boids/Boids.hpp"
+#include "Demos/TiledRendering/TiledRendering.hpp"
+#include "Demos/SSAO/SSAO.hpp"
+#include "Demos/SSR/SSR.hpp"
+#include "Demos/OIT/OIT.hpp"
 
 
 
@@ -108,7 +114,37 @@ struct DemoManager {
             demo->Load();
             break;
         case 12:
-            demo = new Template;
+            demo = new PathTracer;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 13:
+            demo = new Boids;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 14:
+            demo = new TiledRendering;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 15:
+            demo = new SSAO;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 16:
+            demo = new SSR;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 17:
+            demo = new OIT;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -371,9 +407,29 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(11);
             }
-            if(ImGui::Button("Template", ImVec2(100, 20))) {
+            if(ImGui::Button("Path Tracer", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(12);
+            }
+            if(ImGui::Button("Boids", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(13);
+            }
+            if(ImGui::Button("Tiled Rendering", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(14);
+            }
+            if(ImGui::Button("SSAO", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(15);
+            }
+            if(ImGui::Button("SSR", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(16);
+            }
+            if(ImGui::Button("OIT", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(17);
             }
 
             demoManager.RenderGUI();

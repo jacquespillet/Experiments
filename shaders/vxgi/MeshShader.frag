@@ -20,6 +20,12 @@ uniform sampler2D opacityTexture;
 uniform sampler2D ambientTexture;
 uniform sampler2D normalTexture;
 
+uniform int diffuseTextureSet;
+uniform int specularTextureSet;
+uniform int opacityTextureSet;
+uniform int ambientTextureSet;
+uniform int normalTextureSet;
+
 uniform vec3 mat_ambient;
 uniform vec3 mat_diffuse;
 uniform vec3 mat_specular;
@@ -141,7 +147,15 @@ void main()
     tangentToWorld = inverse(transpose(mat3(fragTangent, fragNormal, fragBitangent)));
 
     // Normal, light direction and eye direction in world coordinates
+    // vec3 N = fragNormal; //CalBump()
     vec3 N = fragNormal; //CalBump()
+    if(normalTextureSet>0) {
+        mat3 TBN = mat3(fragTangent, fragBitangent, fragNormal);
+        N = texture(normalTexture, fragUv).rgb;
+        N = N * 2.0 - 1.0;   
+        N = normalize(TBN * N); 
+    }
+
     vec3 L = lightDirection;
     vec3 E = normalize(fragToEyeWorld);
     
@@ -185,5 +199,9 @@ void main()
 
     float directAmbient = (showAmbient>0) ?  directAmbient : 0;
 
-    outputColor = vec4(diffuseReflection + specularReflection + directAmbient * diffuseColor.rgb, alpha);
+    vec3 color = diffuseReflection + specularReflection + directAmbient * diffuseColor.rgb;
+    float gamma = 2.2;
+    color = pow(color, vec3(1.0/gamma));
+    outputColor = vec4(color, alpha);
+            
 }

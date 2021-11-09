@@ -12,7 +12,7 @@ GL_Mesh *MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
     std::vector<GL_Mesh::Vertex> vertices;   
 
     Assimp::Importer import;
-    const aiScene *scene = import.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FlipWindingOrder | aiProcess_CalcTangentSpace ); 
+    const aiScene *scene = import.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FlipWindingOrder | aiProcess_CalcTangentSpace );
 
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
     {
@@ -31,8 +31,13 @@ GL_Mesh *MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        glm::vec3 tangent(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-        glm::vec3 bitangent(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+		
+		glm::vec3 tangent, bitangent;
+		if (mesh->HasTangentsAndBitangents())
+		{
+			tangent = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			bitangent = glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
+		}
         glm::vec3 normal(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         
         if(swapYZ)
@@ -382,6 +387,11 @@ float Clamp(float input, float min, float max)
 }
 
 
+float Lerp(float a, float b, float f)
+{
+    return a + f * (b - a);
+}  
+
 float RandomFloat(float min, float max)
 {
 	float Result = (float)std::rand() / (float)RAND_MAX;
@@ -398,6 +408,15 @@ int RandomInt(int min, int max)
 	return Result;
 }
 
+glm::vec3 RandomVec3(glm::vec3 min, glm::vec3 max)
+{
+    glm::vec3 Result = {
+        RandomFloat(min.x, max.x),
+        RandomFloat(min.y, max.y),
+        RandomFloat(min.z, max.z)
+    };
+    return Result;
+}
 
 bool RayTriangleIntersection( 
     glm::vec3 &orig, glm::vec3 &dir, 

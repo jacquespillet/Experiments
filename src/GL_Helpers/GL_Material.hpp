@@ -56,6 +56,8 @@ public:
         SetVec3("mat_transparent", transparent);
         SetFloat("mat_shininess", shininess);
         SetFloat("mat_opacity", opacity);
+        SetFloat("mat_roughness", roughness);
+        SetFloat("mat_metallic", metallic);
 
 
         return true;
@@ -72,10 +74,12 @@ public:
 
     void LoadTexture(std::string filename, TEXTURE_TYPE type)
     {
+        TextureCreateInfo info = {};
         switch (type)
         {
         case DIFFUSE:
-            diffuseTexture = GL_Texture(filename, {});
+            info.srgb=true;
+            diffuseTexture = GL_Texture(filename, info);
             diffuseTextureSet=true;
             break;
         case SPECULAR:
@@ -135,4 +139,6 @@ public:
 	glm::vec3 transparent;
 	float shininess;
 	float opacity;
+    float roughness = 1.0f;
+    float metallic = 0.0f;
 };

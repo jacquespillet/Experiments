@@ -27,14 +27,7 @@ void main()
 
     vec2 texUv = boxPos.xy + 0.5;
 
-    // outputColor = vec4(boxPos ,1);
-    // outputColor = vec4(boxPos,1);
-    // outputColor = vec4(pixelWorldPos,1);
-    // outputColor = vec4(uv,0,1);
     vec4 color = texture(decalTexture, texUv);
     if(color.a < 0.5) discard;
     outputColor = vec4(color.xyz, 1);
-    // outputColor = vec4(texUv,0,1);
-    // outputPosition = vec4(fragWorldPos, 1);
-    // outputNormal = vec4(fragNormal, 1);
 }

@@ -1,0 +1,140 @@
+#version 430
+
+struct PointLight
+{
+    vec3 position;
+    float radius;
+    vec4 color;
+    vec4 currentPosition;
+};
+
+layout (std430, binding = 0) readonly buffer lightsBlock {
+   PointLight lights [];
+};
+
+layout(std430, binding = 1) writeonly buffer visibleLightsBlock {
+	int visibleLights[];
+};
+
+uniform sampler2D prepassDepthMap;
+
+uniform int numLights;
+
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+uniform ivec2 screenResolution;
+
+shared uvec2 groupDepthRange;
+shared uint numLightsInTile;
+shared mat4 viewProjectionMatrix;
+
+shared vec4 tileFrustum[6];
+shared int tileLightIndices[1024];
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+void main() {
+	ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 tileIndex = ivec2(gl_WorkGroupID.xy);
+	ivec2 numGroups = ivec2(gl_NumWorkGroups.xy);
+	uint flatTileIndex = tileIndex.y * numGroups.x + tileIndex.x;
+    uint groupThreadIndex = gl_LocalInvocationIndex;
+
+    //Init group shared data from the first group thread
+    if(groupThreadIndex==0)
+    {
+        groupDepthRange.x = 0xFFFFFFFF;
+        groupDepthRange.y = 0;
+        numLightsInTile = 0;
+        viewProjectionMatrix = projectionMatrix * viewMatrix;
+    }
+    barrier();
+
+
+    //Find min and max depth within the tile
+    vec2 uv = vec2(pixelPos) / screenResolution;
+    float depth = texture(prepassDepthMap, uv).r;
+    // https://stackoverflow.com/questions/51108596/linearize-depth
+    depth = (0.5 * projectionMatrix[3][2]) / (depth + 0.5 * projectionMatrix[2][2] - 0.5);
+    uint depthInt = floatBitsToUint(depth);
+    atomicMin(groupDepthRange.x, depthInt);
+    atomicMax(groupDepthRange.y, depthInt);
+    barrier();
+
+    //frustum planes of the tile
+    float maxDepth, minDepth;
+	// Step 2: One thread should calculate the frustum planes to be used for this tile
+    if(groupThreadIndex==0)
+    {
+		//Min and max depth within the current tile
+		minDepth = uintBitsToFloat(groupDepthRange.x);
+		maxDepth = uintBitsToFloat(groupDepthRange.y);
+
+		
+        //TODO(Jacques): Why 2 ?
+		vec2 negativeStep = (2.0 * vec2(tileIndex)) / vec2(numGroups);
+		vec2 positiveStep = (2.0 * vec2(tileIndex + ivec2(1, 1))) / vec2(numGroups);
+
+		// Set up starting values for planes using steps and min and max z values
+		tileFrustum[0] = vec4(1.0, 0.0, 0.0, 1.0 - negativeStep.x); // Left
+		tileFrustum[1] = vec4(-1.0, 0.0, 0.0, -1.0 + positiveStep.x); // Right
+		tileFrustum[2] = vec4(0.0, 1.0, 0.0, 1.0 - negativeStep.y); // Bottom
+		tileFrustum[3] = vec4(0.0, -1.0, 0.0, -1.0 + positiveStep.y); // Top
+		tileFrustum[4] = vec4(0.0, 0.0, -1.0, -minDepth); // Near
+		tileFrustum[5] = vec4(0.0, 0.0, 1.0, maxDepth); // Far
+
+		// Transform the first four planes
+		for (uint i = 0; i < 4; i++) {
+			tileFrustum[i] *= viewProjectionMatrix;
+			tileFrustum[i] /= length(tileFrustum[i].xyz);
+		}
+
+		// Transform the depth planes
+		tileFrustum[4] *= viewMatrix;
+		tileFrustum[4] /= length(tileFrustum[4].xyz);
+		tileFrustum[5] *= viewMatrix;
+		tileFrustum[5] /= length(tileFrustum[5].xyz);        
+    }
+
+    barrier();
+
+    uint numThreads = 16*16;
+    uint numPasses = (numLights) / numThreads + 1;
+    for(uint i=0; i<numPasses; i++)
+    {
+        uint lightIndex = i * numThreads + groupThreadIndex;
+        if(lightIndex > numLights) break;
+
+        vec4 lightPosition = vec4(lights[lightIndex].position, 1.0f);
+        float lightRadius = lights[lightIndex].radius;
+
+        float distance = 0.0f;
+        for(int j=0; j<6; j++)
+        {
+            distance = dot(lightPosition, tileFrustum[j]) + lightRadius;
+            if(distance <=0) break;
+        }
+
+        //
+        if(distance > 0.0f)
+        {
+            uint offset = atomicAdd(numLightsInTile, 1);
+            tileLightIndices[offset] = int(lightIndex);
+        }
+    }
+
+    barrier();
+
+    if(groupThreadIndex==0)
+    {
+        uint offset = flatTileIndex * 1024;
+
+        for(uint i=0; i<numLightsInTile; i++)
+        {
+            visibleLights[offset + i] = tileLightIndices[i];
+        }
+
+        if(numLightsInTile != 1024)
+        {
+            visibleLights[offset + numLightsInTile] = -1;
+        }
+    }
+}
