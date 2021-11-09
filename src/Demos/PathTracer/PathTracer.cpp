@@ -139,6 +139,8 @@ void PathTracer::Render() {
     glUniform1ui(glGetUniformLocation(renderingShader.programShaderObject, "frame"), frame);
     glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "pingPongInx"), pingPongInx);
 
+    glUniformMatrix4fv(glGetUniformLocation(renderingShader.programShaderObject, "viewMatrix"), 1, GL_FALSE, glm::value_ptr(cam.GetModelMatrix()));
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, pingPongTextures[oldPingPong]);
     glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "oldTex"), 0);

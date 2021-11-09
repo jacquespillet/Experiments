@@ -38,6 +38,7 @@ public:
 
     glm::mat4 GetProjectionMatrix() const{return projectionMatrix;}
     glm::mat4 GetViewMatrix() const{return invModelMatrix;}
+    glm::mat4 GetModelMatrix() const{return modelMatrix;}
 
     void RecalculateLookat();
 

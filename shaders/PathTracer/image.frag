@@ -9,14 +9,26 @@ const float minDistance = 0.01f;
 const float maxDistance = 10000.0f;
 const float rayPosDelta = 0.01f;
 const float twoPi = 6.28318530718f; 
-const vec3 backgroundColor = vec3(0.3, 0.4, 0.5);
+const vec3 backgroundColor = vec3(0.8, 0.8, 0.8);
+const int numSamples = 20;
+
+uniform mat4 viewMatrix;
+
+struct material
+{
+    float specular;
+    float roughness;
+    vec3 specularColor;
+    vec3 albedo;
+    float IOR;
+};
 
 struct hit
 {
     float distance;
     vec3 normal;
-    vec3 albedo;
     vec3 emission;
+    material materialInfo;
 };
 
 struct sphere
@@ -24,6 +36,28 @@ struct sphere
     vec3 position;
     float radius;
 };
+
+float FresnelReflectAmount(float n1, float n2, vec3 normal, vec3 incident, float f0, float f90)
+{
+        // Schlick aproximation
+        float r0 = (n1-n2) / (n1+n2);
+        r0 *= r0;
+        float cosX = -dot(normal, incident);
+        if (n1 > n2)
+        {
+            float n = n1/n2;
+            float sinT2 = n*n*(1.0-cosX*cosX);
+            // Total internal reflection
+            if (sinT2 > 1.0)
+                return f90;
+            cosX = sqrt(1.0-sinT2);
+        }
+        float x = 1.0-cosX;
+        float ret = r0+(1.0-r0)*x*x*x*x*x;
+ 
+        // adjust reflect multiplier for object reflectivity
+        return mix(f0, f90, ret);
+}
 
 bool RaySphere(vec3 rayOrigin, vec3 rayDirection, inout hit hitInfo, sphere sphereInfo)
 {
@@ -156,105 +190,141 @@ vec3 RandomUnitVector(inout uint state)
 
 void TraceScene(vec3 rayOrigin, vec3 rayDirection, inout hit hitInfo)
 {
-    vec3 sceneTranslation = vec3(0.0f, 0.0f, 10.0f);
+    vec3 sceneTranslation = vec3(0.0f, 0.0f, 0.0f);
 
    	// back wall
     {
-        vec3 A = vec3(-12.6f, -12.6f, 25.0f) + sceneTranslation;
-        vec3 B = vec3( 12.6f, -12.6f, 25.0f) + sceneTranslation;
-        vec3 C = vec3( 12.6f,  12.6f, 25.0f) + sceneTranslation;
-        vec3 D = vec3(-12.6f,  12.6f, 25.0f) + sceneTranslation;
+        vec3 A = vec3(-12.6f, -12.6f, 0.0f) + sceneTranslation;
+        vec3 B = vec3( 12.6f, -12.6f, 0.0f) + sceneTranslation;
+        vec3 C = vec3( 12.6f,  12.6f, 0.0f) + sceneTranslation;
+        vec3 D = vec3(-12.6f,  12.6f, 0.0f) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
+            hitInfo.materialInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
             hitInfo.emission = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }
 	}    
     
     // floor
     {
-        vec3 A = vec3(-12.6f, -12.45f, 25.0f) + sceneTranslation;
-        vec3 B = vec3( 12.6f, -12.45f, 25.0f) + sceneTranslation;
-        vec3 C = vec3( 12.6f, -12.45f, 15.0f) + sceneTranslation;
-        vec3 D = vec3(-12.6f, -12.45f, 15.0f) + sceneTranslation;
+        vec3 A = vec3(-12.6f, -12.45f, 0.0f) + sceneTranslation;
+        vec3 B = vec3( 12.6f, -12.45f, 0.0f) + sceneTranslation;
+        vec3 C = vec3( 12.6f, -12.45f, -10.0f) + sceneTranslation;
+        vec3 D = vec3(-12.6f, -12.45f, -10.0f) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
+            hitInfo.materialInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
             hitInfo.emission = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }        
     }
     
     // cieling
     {
-        vec3 A = vec3(-12.6f, 12.5f, 25.0f) + sceneTranslation;
-        vec3 B = vec3( 12.6f, 12.5f, 25.0f) + sceneTranslation;
-        vec3 C = vec3( 12.6f, 12.5f, 15.0f) + sceneTranslation;
-        vec3 D = vec3(-12.6f, 12.5f, 15.0f) + sceneTranslation;
+        vec3 A = vec3(-12.6f, 12.5f, 0.0f) + sceneTranslation;
+        vec3 B = vec3( 12.6f, 12.5f, 0.0f) + sceneTranslation;
+        vec3 C = vec3( 12.6f, 12.5f, -10.0f) + sceneTranslation;
+        vec3 D = vec3(-12.6f, 12.5f, -10.0f) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
+            hitInfo.materialInfo.albedo = vec3(0.7f, 0.7f, 0.7f);
             hitInfo.emission = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }        
     }    
     
     // left wall
     {
-        vec3 A = vec3(-12.5f, -12.6f, 25.0f) + sceneTranslation;
-        vec3 B = vec3(-12.5f, -12.6f, 15.0f) + sceneTranslation;
-        vec3 C = vec3(-12.5f,  12.6f, 15.0f) + sceneTranslation;
-        vec3 D = vec3(-12.5f,  12.6f, 25.0f) + sceneTranslation;
+        vec3 A = vec3(-12.5f, -12.6f, 0.0f) + sceneTranslation;
+        vec3 B = vec3(-12.5f, -12.6f, -10.0f) + sceneTranslation;
+        vec3 C = vec3(-12.5f,  12.6f, -10.0f) + sceneTranslation;
+        vec3 D = vec3(-12.5f,  12.6f, 0.0f) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.7f, 0.1f, 0.1f);
+            hitInfo.materialInfo.albedo = vec3(0.7f, 0.1f, 0.1f);
             hitInfo.emission = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }        
     }
     
     // right wall 
     {
-        vec3 A = vec3( 12.5f, -12.6f, 25.0f) + sceneTranslation;
-        vec3 B = vec3( 12.5f, -12.6f, 15.0f) + sceneTranslation;
-        vec3 C = vec3( 12.5f,  12.6f, 15.0f) + sceneTranslation;
-        vec3 D = vec3( 12.5f,  12.6f, 25.0f) + sceneTranslation;
+        vec3 A = vec3( 12.5f, -12.6f, 0.0f) + sceneTranslation;
+        vec3 B = vec3( 12.5f, -12.6f, -10.0f) + sceneTranslation;
+        vec3 C = vec3( 12.5f,  12.6f, -10.0f) + sceneTranslation;
+        vec3 D = vec3( 12.5f,  12.6f, 0.0f) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.1f, 0.7f, 0.1f);
+            hitInfo.materialInfo.albedo = vec3(0.1f, 0.7f, 0.1f);
             hitInfo.emission = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }        
     }        
         
     // light
     {
-        vec3 A = vec3(-5.0f, 12.4f,  22.5f) + sceneTranslation;
-        vec3 B = vec3( 5.0f, 12.4f,  22.5f) + sceneTranslation;
-        vec3 C = vec3( 5.0f, 12.4f,  17.5f) + sceneTranslation;
-        vec3 D = vec3(-5.0f, 12.4f,  17.5f) + sceneTranslation;
+        vec3 A = vec3(-5.0f, 12.4f,  -2.5) + sceneTranslation;
+        vec3 B = vec3( 5.0f, 12.4f,  -2.5) + sceneTranslation;
+        vec3 C = vec3( 5.0f, 12.4f,  -5) + sceneTranslation;
+        vec3 D = vec3(-5.0f, 12.4f,  -5) + sceneTranslation;
         if (RayQuad(rayOrigin, rayDirection, hitInfo, A, B, C, D))
         {
-            hitInfo.albedo = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.albedo = vec3(0.0f, 0.0f, 0.0f);
             hitInfo.emission = vec3(1.0f, 0.9f, 0.7f) * 20.0f;
+            hitInfo.materialInfo.specular = 0.0f;
+            hitInfo.materialInfo.roughness = 1.0f;
+            hitInfo.materialInfo.specularColor = vec3(0.0f, 0.0f, 0.0f);
+            hitInfo.materialInfo.IOR = 1.0f;
         }        
     }
 
-    sphere sphere1 = sphere( sceneTranslation + vec3(-9.0f, -9.5f, 20.0f), 3.0f);
+    sphere sphere1 = sphere( sceneTranslation + vec3(-9.0f, -9.5f, -5), 3.0f);
     if(RaySphere(rayOrigin, rayDirection, hitInfo, sphere1))
     {
-        hitInfo.albedo = vec3(0.9f, 0.9f, 0.75f);
+        hitInfo.materialInfo.albedo = vec3(0.9f, 0.9f, 0.75f);
         hitInfo.emission = vec3(0.0f,0.0f,0.0f);
+        hitInfo.materialInfo.specular = 1;
+        hitInfo.materialInfo.roughness = 0.05;
+        hitInfo.materialInfo.specularColor = vec3(0.8, 0.5, 0.5);
+        hitInfo.materialInfo.IOR = 1.0f;
     }
 
-    sphere sphere2 = sphere( sceneTranslation + vec3(0.0f, -9.5f, 20.0f), 3.0f);
+    sphere sphere2 = sphere( sceneTranslation + vec3(0.0f, -9.5f, -5), 3.0f);
     if(RaySphere(rayOrigin, rayDirection, hitInfo, sphere2))
     {
-        hitInfo.albedo = vec3(0.9f, 0.75f, 0.9f);
         hitInfo.emission = vec3(0.0f,0.0f,0.0f);
+        hitInfo.materialInfo.albedo = vec3(0.9f, 0.75f, 0.9f);
+        hitInfo.materialInfo.specular = 1;
+        hitInfo.materialInfo.roughness = 0.4;
+        hitInfo.materialInfo.specularColor = vec3(0.8, 0.8, 0.5);
+        hitInfo.materialInfo.IOR = 1.0f;
     }
 
-    sphere sphere3 = sphere( sceneTranslation + vec3(9.0f, -9.5f, 20.0f), 3.0f);
+    sphere sphere3 = sphere( sceneTranslation + vec3(9.0f, -9.5f, -5), 3.0f);
     if(RaySphere(rayOrigin, rayDirection, hitInfo, sphere3))
     {
-        hitInfo.albedo = vec3(0.75f, 0.9f, 0.9f);
+        hitInfo.materialInfo.albedo = vec3(0.75f, 0.9f, 0.9f);
         hitInfo.emission = vec3(0.0f,0.0f,0.0f);
+        hitInfo.materialInfo.specular = 1;
+        hitInfo.materialInfo.roughness = 0.7;
+        hitInfo.materialInfo.specularColor = vec3(0.8, 0.8, 0.8);
+        hitInfo.materialInfo.IOR = 1.0f;
     }
 }
 
@@ -278,45 +348,46 @@ vec3 Color(vec3 rayOriginStart, vec3 rayDirectionStart, inout uint entropy)
         }
 
         vec3 hitPosition = rayOrigin + rayDirection * hitInfo.distance;
+
+        // apply fresnel
+        float specularChance = hitInfo.materialInfo.specular;
+        if (specularChance > 0.0f)
+        {
+            specularChance = FresnelReflectAmount(
+                1.0,
+                hitInfo.materialInfo.IOR,
+                rayDirection, hitInfo.normal, hitInfo.materialInfo.specular, 1.0f);  
+        }
+        float doSpecular = (RandomFloat01(entropy) < specularChance) ? 1.0f : 0.0f;
+            
+
+        vec3 diffuseRayDirection = normalize(hitInfo.normal + RandomUnitVector(entropy));
+        vec3 specularRayDirection =  reflect(rayDirection, hitInfo.normal);
+        specularRayDirection = normalize(mix(specularRayDirection, diffuseRayDirection, hitInfo.materialInfo.roughness * hitInfo.materialInfo.roughness ));
+
         rayOrigin = hitPosition + hitInfo.normal * rayPosDelta;
-        rayDirection = normalize(hitInfo.normal + RandomUnitVector(entropy));          
+        rayDirection = mix(diffuseRayDirection, specularRayDirection, doSpecular);
 
         result += hitInfo.emission * attenuation;
+        attenuation *= mix(hitInfo.materialInfo.albedo, hitInfo.materialInfo.specularColor, doSpecular);
 
-        attenuation *= hitInfo.albedo;
+        //Divide by PDF
+        float rayProbability = (doSpecular == 1.0f) ? specularChance : 1.0f - specularChance;
+        rayProbability = max(rayProbability, 0.001f); 
+        attenuation /= rayProbability;
+
+        //Russian roulette
+        float p = max(attenuation.r, max(attenuation.g, attenuation.b));
+        if (RandomFloat01(entropy) > p)
+            break;
+    
+        // Add the energy we 'lose' by randomly terminating paths
+        attenuation *= 1.0f / p;
+    
     }
     return result;
 }
 
-vec3 LessThan(vec3 f, float value)
-{
-    return vec3(
-        (f.x < value) ? 1.0f : 0.0f,
-        (f.y < value) ? 1.0f : 0.0f,
-        (f.z < value) ? 1.0f : 0.0f);
-}
- 
-vec3 LinearToSRGB(vec3 rgb)
-{
-    rgb = clamp(rgb, 0.0f, 1.0f);
-     
-    return mix(
-        pow(rgb, vec3(1.0f / 2.4f)) * 1.055f - 0.055f,
-        rgb * 12.92f,
-        LessThan(rgb, 0.0031308f)
-    );
-}
- 
-vec3 SRGBToLinear(vec3 rgb)
-{
-    rgb = clamp(rgb, 0.0f, 1.0f);
-     
-    return mix(
-        pow(((rgb + 0.055f) / 1.055f), vec3(2.4f)),
-        rgb / 12.92f,
-        LessThan(rgb, 0.04045f)
-    );
-}   
 
 uniform int width;
 uniform int height; 
@@ -328,22 +399,33 @@ void main()
     ivec2 fragCoord = ivec2(fragUv * vec2(width, height));
 
     uint rngState = uint(uint(fragCoord.x) * uint(1973) + uint(fragCoord.y) * uint(9277) + uint(frame) * uint(26699)) | uint(1);
-    
-    vec2 jitter = vec2(RandomFloat01(rngState), RandomFloat01(rngState)) - 0.5f;
-    jitter /= vec2(width, height);
-    vec3 filmPosition = vec3((fragUv + jitter) * 2.0f - 1.0f, 1);
 
-    float aspectRatio = float(width) / float(height);
-    filmPosition.y /= aspectRatio;
+    vec3 outColor = vec3(0,0,0);
+    float invNumSample = 1.0f / float(numSamples);
+    for(int i=0; i<numSamples; i++)
+    {
+        vec2 jitter = vec2(RandomFloat01(rngState), RandomFloat01(rngState)) - 0.5f;
+        jitter /= vec2(width, height);
+        vec3 filmPosition = vec3((fragUv + jitter) * 2.0f - 1.0f, -1);
 
-    vec3 rayOrigin = vec3(0,0,0);
-    vec3 rayDirection = normalize(filmPosition - rayOrigin);
-    vec3 color = Color(rayOrigin, rayDirection, rngState);
-    color = LinearToSRGB(color);
+        float aspectRatio = float(width) / float(height);
+        filmPosition.y /= aspectRatio;
 
-    vec3 lastFrameColor = texture(oldTex, fragUv).rgb;
-    color = mix(lastFrameColor, color, 1.0f / float(frame+1));
+        vec3 rayOrigin = vec3(0,0,0);
+        vec3 rayDirection = normalize(filmPosition - rayOrigin);
 
-    if(pingPongInx==0) outputColor0 = vec4(color, 1);
-    else outputColor1 = vec4(color, 1);
+        rayOrigin = (viewMatrix * vec4(rayOrigin, 1.0f)).xyz;
+        rayDirection = (viewMatrix * vec4(rayDirection, 0.0f)).xyz;
+
+        vec3 color = Color(rayOrigin, rayDirection, rngState);
+        
+        
+        vec3 lastFrameColor = texture(oldTex, fragUv).rgb;
+        color = mix(lastFrameColor, color, 1.0f / float(frame+1));
+
+        outColor += color * invNumSample;
+    }    
+
+    if(pingPongInx==0) outputColor0 = vec4(outColor, 1);
+    else outputColor1 = vec4(outColor, 1);
 }
