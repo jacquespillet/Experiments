@@ -359,8 +359,8 @@ vec3 Color(vec3 rayOriginStart, vec3 rayDirectionStart, inout uint entropy)
                 rayDirection, hitInfo.normal, hitInfo.materialInfo.specular, 1.0f);  
         }
         float doSpecular = (RandomFloat01(entropy) < specularChance) ? 1.0f : 0.0f;
-            
-
+        
+        //calculate next ray
         vec3 diffuseRayDirection = normalize(hitInfo.normal + RandomUnitVector(entropy));
         vec3 specularRayDirection =  reflect(rayDirection, hitInfo.normal);
         specularRayDirection = normalize(mix(specularRayDirection, diffuseRayDirection, hitInfo.materialInfo.roughness * hitInfo.materialInfo.roughness ));
@@ -368,6 +368,7 @@ vec3 Color(vec3 rayOriginStart, vec3 rayDirectionStart, inout uint entropy)
         rayOrigin = hitPosition + hitInfo.normal * rayPosDelta;
         rayDirection = mix(diffuseRayDirection, specularRayDirection, doSpecular);
 
+        //Add to the result
         result += hitInfo.emission * attenuation;
         attenuation *= mix(hitInfo.materialInfo.albedo, hitInfo.materialInfo.specularColor, doSpecular);
 
@@ -380,9 +381,8 @@ vec3 Color(vec3 rayOriginStart, vec3 rayDirectionStart, inout uint entropy)
         float p = max(attenuation.r, max(attenuation.g, attenuation.b));
         if (RandomFloat01(entropy) > p)
             break;
-    
-        // Add the energy we 'lose' by randomly terminating paths
         attenuation *= 1.0f / p;
+    
     
     }
     return result;

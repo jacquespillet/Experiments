@@ -23,8 +23,10 @@ void GL_Camera::mouseReleaseEvent(int button) {
     prevPos = glm::ivec2(-1, -1);
 }
 
-void GL_Camera::mouseMoveEvent(float x, float y) {
-    if(locked) return;
+bool GL_Camera::mouseMoveEvent(float x, float y) {
+    if(locked) return false;
+
+    bool changed=false;
     glm::vec2 currentPos = glm::vec2(x, y);
     if(IsLeftMousePressed) {
         if(prevPos.x >0) {
@@ -41,7 +43,9 @@ void GL_Camera::mouseMoveEvent(float x, float y) {
             sphericalPosition.x = sin(theta) * cos(phi);
             sphericalPosition.z = sin(theta) * sin(phi);                  
             sphericalPosition.y = cos(theta);
-            RecalculateLookat();    
+            RecalculateLookat();  
+
+            changed=true;  
         }
     } else if (IsRightMousePressed) {
         if(prevPos.x >0) {
@@ -49,9 +53,12 @@ void GL_Camera::mouseMoveEvent(float x, float y) {
             target -= (float)diff.x * 0.005 * distance * glm::vec3(modelMatrix[0]);
             target += (float)diff.y * 0.005 * distance *  glm::vec3(modelMatrix[1]);
             RecalculateLookat();
+            changed=true;  
+            
         }
     }
     prevPos = currentPos;
+    return changed;  
 }
 
 void GL_Camera::Scroll(float offset){

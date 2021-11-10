@@ -39,12 +39,13 @@ public:
     glm::mat4 GetProjectionMatrix() const{return projectionMatrix;}
     glm::mat4 GetViewMatrix() const{return invModelMatrix;}
     glm::mat4 GetModelMatrix() const{return modelMatrix;}
+    float GetFov() const{return fov;}
 
     void RecalculateLookat();
 
     void mousePressEvent(int button);
     void mouseReleaseEvent(int button);
-    void mouseMoveEvent(float x, float y);
+    bool mouseMoveEvent(float x, float y);
     void Scroll(float offset);
     
     void GetScreenRay(glm::vec2 ndc, float aspect, glm::vec3& rayOrig, glm::vec3& rayDir);

@@ -161,8 +161,8 @@ void PathTracer::Unload() {
 
 
 void PathTracer::MouseMove(float x, float y) {
-    frame=0;
-    cam.mouseMoveEvent(x, y);
+    bool changed = cam.mouseMoveEvent(x, y);
+    if(changed) frame=0;
 }
 
 void PathTracer::LeftClickDown() {
@@ -170,10 +170,12 @@ void PathTracer::LeftClickDown() {
 }
 
 void PathTracer::LeftClickUp() {
+    frame=0;
     cam.mouseReleaseEvent(0);
 }
 
 void PathTracer::RightClickDown() {
+    frame=0;
     cam.mousePressEvent(1);
 }
 
@@ -182,5 +184,6 @@ void PathTracer::RightClickUp() {
 }
 
 void PathTracer::Scroll(float offset) {
+    frame=0;
     cam.Scroll(offset);
 }

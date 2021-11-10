@@ -29,6 +29,7 @@
 #include "Demos/SSAO/SSAO.hpp"
 #include "Demos/SSR/SSR.hpp"
 #include "Demos/OIT/OIT.hpp"
+#include "Demos/CSM/CSM.hpp"
 
 
 
@@ -145,6 +146,12 @@ struct DemoManager {
             break;
         case 17:
             demo = new OIT;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 18:
+            demo = new CSM;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -430,6 +437,10 @@ private:
             if(ImGui::Button("OIT", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(17);
+            }
+            if(ImGui::Button("CSM", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(18);
             }
 
             demoManager.RenderGUI();

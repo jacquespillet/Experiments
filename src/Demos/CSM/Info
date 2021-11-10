@@ -1,0 +1,22 @@
+Solution for a few problems : 
+Resolution of shadow maps on large scenes can be too low.
+fits the entire visible scene into the light view frustum
+
+Algo :
+Generate a texture 2d array of fixed size, one layer per cascade.
+
+we split the camera view frustum into n, based on the depth.
+for each slice of the cam view frustum we calculate its world space coordinates.
+based on these coordinates, we can find their centroids and define a view matrix that will point to the center.
+to find the light projection matrix, we need to define an ortho matrix that encompasses the points of the frustum.
+to do it we just transform the world space frustum points into the light view matrix space, compute the min maxes and use them for the ortho.
+
+Render shadow maps :
+we render the scene using geometry shader and invocations to render in each texture of the array.
+each invocation will use a different light view projection matrix.
+
+Render scene:
+for each fragment, we need to find in which cascade it belongs.
+to do it we find its position in view space and calculate its depth.
+we then use this to get the layer.
+with the layer we can sample the appropriate shadow map.
