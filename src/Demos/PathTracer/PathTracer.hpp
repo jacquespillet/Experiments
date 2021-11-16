@@ -40,4 +40,11 @@ private:
 
     glm::vec3 lightDirection;
     bool lightDirectionChanged=false;
+
+    GLint computeShader;
+    enum MODE
+    {
+        FRAGMENT,
+        COMPUTE
+    } mode = COMPUTE;
 };

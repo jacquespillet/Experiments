@@ -106,6 +106,7 @@ void PathTracer::Load() {
     screenSpaceQuad = GL_Mesh(vertices, triangles);
     renderingShader = GL_Shader("shaders/PathTracer/image.vert", "", "shaders/PathTracer/image.frag");
     textureShader = GL_Shader("shaders/PathTracer/texture.vert", "", "shaders/PathTracer/texture.frag");
+    CreateComputeShader("shaders/PathTracer/image.compute", &computeShader);
 }
 
 void PathTracer::RenderGUI() {
@@ -130,30 +131,55 @@ void PathTracer::Render() {
     frame++;
     int oldPingPong = pingPongInx;
     pingPongInx = (pingPongInx+1) % 2;
+    if(mode == FRAGMENT)
+    {
 
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glDisable(GL_DEPTH_TEST);
-    glUseProgram(renderingShader.programShaderObject);
-    glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "width"), windowWidth);
-    glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "height"), windowHeight);
-    glUniform1ui(glGetUniformLocation(renderingShader.programShaderObject, "frame"), frame);
-    glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "pingPongInx"), pingPongInx);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glDisable(GL_DEPTH_TEST);
+        glUseProgram(renderingShader.programShaderObject);
+        glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "width"), windowWidth);
+        glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "height"), windowHeight);
+        glUniform1ui(glGetUniformLocation(renderingShader.programShaderObject, "frame"), frame);
+        glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "pingPongInx"), pingPongInx);
 
-    glUniformMatrix4fv(glGetUniformLocation(renderingShader.programShaderObject, "viewMatrix"), 1, GL_FALSE, glm::value_ptr(cam.GetModelMatrix()));
+        glUniformMatrix4fv(glGetUniformLocation(renderingShader.programShaderObject, "viewMatrix"), 1, GL_FALSE, glm::value_ptr(cam.GetModelMatrix()));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, pingPongTextures[oldPingPong]);
-    glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "oldTex"), 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, pingPongTextures[oldPingPong]);
+        glUniform1i(glGetUniformLocation(renderingShader.programShaderObject, "oldTex"), 0);
 
-    screenSpaceQuad.RenderShader(renderingShader.programShaderObject);
+        screenSpaceQuad.RenderShader(renderingShader.programShaderObject);
+    }
+    else
+    {
+        glUseProgram(computeShader);
+        glUniform1i(glGetUniformLocation(computeShader, "width"), windowWidth);
+        glUniform1i(glGetUniformLocation(computeShader, "height"), windowHeight);
+        glUniform1ui(glGetUniformLocation(computeShader, "frame"), frame);
+        glUniform1i(glGetUniformLocation(computeShader, "pingPongInx"), pingPongInx);
 
+        glUniformMatrix4fv(glGetUniformLocation(computeShader, "viewMatrix"), 1, GL_FALSE, glm::value_ptr(cam.GetModelMatrix()));
+
+        glBindImageTexture(0, pingPongTextures[0], 0, GL_FALSE, 0, GL_READ_WRITE , GL_RGBA32F);
+        glBindImageTexture(1, pingPongTextures[1], 0, GL_FALSE, 0, GL_READ_WRITE , GL_RGBA32F);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, pingPongTextures[oldPingPong]);
+        glUniform1i(glGetUniformLocation(computeShader, "oldTex"), 0);
+
+        int groupX = windowWidth / 32 + 1;
+        int groupY = windowHeight / 32 + 1;
+        glDispatchCompute(groupX, groupY, 1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);            
+    }
+
+    
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(textureShader.programShaderObject);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, pingPongTextures[pingPongInx]);
     glUniform1i(glGetUniformLocation(textureShader.programShaderObject, "tex"), 0);
     screenSpaceQuad.RenderShader(textureShader.programShaderObject);
-
 }
 
 void PathTracer::Unload() {
