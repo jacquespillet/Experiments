@@ -30,6 +30,8 @@
 #include "Demos/SSR/SSR.hpp"
 #include "Demos/OIT/OIT.hpp"
 #include "Demos/CSM/CSM.hpp"
+#include "Demos/ShellFur/ShellFur.hpp"
+#include "Demos/DispMapping/DispMapping.hpp"
 
 
 
@@ -152,6 +154,18 @@ struct DemoManager {
             break;
         case 18:
             demo = new CSM;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 19:
+            demo = new ShellFur;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 20:
+            demo = new DispMapping;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -369,7 +383,7 @@ private:
     void RenderGUI() {
         {
             ImGui::Begin("Demos : "); 
-
+            
             if(ImGui::Button("Voxel cone tracing", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(1);
@@ -377,10 +391,6 @@ private:
             if(ImGui::Button("Reflective Shadow Maps", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(2);
-            }
-            if(ImGui::Button("Imperfect Shadow Maps", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(3);
             }
             if(ImGui::Button("Light Propagation Volumes", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
@@ -418,31 +428,44 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(12);
             }
-            if(ImGui::Button("Boids", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(13);
-            }
             if(ImGui::Button("Tiled Rendering", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(14);
             }
-            if(ImGui::Button("SSAO", ImVec2(100, 20))) {
+            if(ImGui::Button("Screen Space Ambient Occlusion", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(15);
             }
-            if(ImGui::Button("SSR", ImVec2(100, 20))) {
+            if(ImGui::Button("Screen Space Reflections", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(16);
             }
-            if(ImGui::Button("OIT", ImVec2(100, 20))) {
+            if(ImGui::Button("Order Independant Transparency", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(17);
             }
-            if(ImGui::Button("CSM", ImVec2(100, 20))) {
+            if(ImGui::Button("Cascaded Shadow Mapping", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(18);
             }
+            if(ImGui::Button("Shell Fur", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(19);
+            }
 
+            ImGui::Text("WIP"); 
+            if(ImGui::Button("Boids", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(13);
+            }
+            if(ImGui::Button("Imperfect Shadow Maps", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(3);
+            }
+            if(ImGui::Button("Displacement mapping", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(20);
+            }
             demoManager.RenderGUI();
 
             ImGui::End();

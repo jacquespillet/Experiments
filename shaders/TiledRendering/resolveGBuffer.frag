@@ -30,7 +30,8 @@ layout (std430, binding = 0) buffer lightsBlock {
 };
 
 float attenuate(vec3 lightDirection, float radius) {
-	float cutoff = 0.5;
+	radius *= 0.85;
+    float cutoff = 0.5;
 	float attenuation = dot(lightDirection, lightDirection) / (100.0 * radius);
 	attenuation = 1.0 / (attenuation * 15.0 + 1.0);
 	attenuation = (attenuation - cutoff) / (1.0 - cutoff);

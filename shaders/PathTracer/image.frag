@@ -425,7 +425,7 @@ void main()
 
         outColor += color * invNumSample;
     }    
-
+    
     if(pingPongInx==0) outputColor0 = vec4(outColor, 1);
     else outputColor1 = vec4(outColor, 1);
 }

@@ -55,14 +55,14 @@ glm::mat4 CSM::ComputeLightVPMatrix(std::vector<glm::vec4>& corners)
         max = glm::max(max, cornerViewSpace);
     }
 
-    if(min.z < 0) {
+    if(min.z < 0.0f) {
         min.z *= zMultiplicator;
     }
     else
     {
         min.z /= zMultiplicator;
     }
-    if(max.z < 0) {
+    if(max.z < 0.0f) {
         max.z /= zMultiplicator;
     }
     else

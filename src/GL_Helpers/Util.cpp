@@ -480,3 +480,53 @@ bool RayAABBIntersection(glm::vec3 &orig, glm::vec3 &invDir, int *sign, AABB &aa
  
     return true;
 }
+
+
+void CalculateTangents(std::vector<GL_Mesh::Vertex>& vertices, std::vector<uint32_t> &triangles) {
+	std::vector<glm::vec4> tan1(vertices.size(), glm::vec4(0));
+	std::vector<glm::vec4> tan2(vertices.size(), glm::vec4(0));
+	
+    for(uint64_t i=0; i<triangles.size(); i+=3) {
+		glm::vec3 v1 = vertices[triangles[i]].position;
+		glm::vec3 v2 = vertices[triangles[i + 1]].position;
+		glm::vec3 v3 = vertices[triangles[i + 2]].position;
+
+		glm::vec2 w1 = vertices[triangles[i]].uv;
+		glm::vec2 w2 = vertices[triangles[i+1]].uv;
+		glm::vec2 w3 = vertices[triangles[i+2]].uv;
+
+		double x1 = v2.x - v1.x;
+		double x2 = v3.x - v1.x;
+		double y1 = v2.y - v1.y;
+		double y2 = v3.y - v1.y;
+		double z1 = v2.z - v1.z;
+		double z2 = v3.z - v1.z;
+
+		double s1 = w2.x - w1.x;
+		double s2 = w3.x - w1.x;
+		double t1 = w2.y - w1.y;
+		double t2 = w3.y - w1.y;
+
+  		double r = 1.0F / (s1 * t2 - s2 * t1);
+		glm::vec4 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r, 0);
+		glm::vec4 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r, 0);
+
+		tan1[triangles[i]] += sdir;
+		tan1[triangles[i + 1]] += sdir;
+		tan1[triangles[i + 2]] += sdir;
+		
+		tan2[triangles[i]] += tdir;
+		tan2[triangles[i + 1]] += tdir;
+		tan2[triangles[i + 2]] += tdir;
+	}
+
+	for(uint64_t i=0; i<vertices.size(); i++) { 
+		glm::vec3 n = vertices[i].normal;
+		glm::vec3 t = glm::vec3(tan1[i]);
+
+		vertices[i].tan = glm::normalize((t - n * glm::dot(n, t)));
+    
+        float w = (glm::dot(glm::cross(n, t), glm::vec3(tan2[i])) < 0.0F) ? -1.0F : 1.0F;
+		vertices[i].bitan =  glm::normalize(glm::cross(n, t) * w);
+	}
+}

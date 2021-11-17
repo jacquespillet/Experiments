@@ -35,3 +35,7 @@ bool RayTriangleIntersection(
     float *t, glm::vec2*uv) ;
     
 bool RayAABBIntersection(glm::vec3 &orig, glm::vec3 &invDir, int *sign, AABB &aabb);
+
+
+void CalculateTangents(std::vector<GL_Mesh::Vertex>& vertices, std::vector<uint32_t> &triangles);
+

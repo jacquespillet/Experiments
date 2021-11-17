@@ -15,7 +15,7 @@ Template::Template() {
 
 void Template::Load() {
 
-    MeshShader = GL_Shader("shaders/OIT/MeshShader.vert", "", "shaders/OIT/MeshShader.frag");
+    MeshShader = GL_Shader("shaders/Template/MeshShader.vert", "", "shaders/Template/MeshShader.frag");
 
     MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
     for(int i=0; i<Meshes.size(); i++)

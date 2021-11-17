@@ -9,6 +9,7 @@ layout(location = 4) in vec2 uv;
 
 uniform mat4 modelViewProjectionMatrix;
 uniform mat4 modelMatrix;
+uniform mat4 inverseModel;
 
 uniform vec3 cameraPosition;
 uniform vec3 lightDirection;
@@ -20,11 +21,15 @@ out vec3 fragBitangent;
 out vec2 fragUv;
 out vec3 fragToEyeWorld;
 out vec3 fragToLightWorld;
-out vec3 fragToEyeTangent;
 out vec4 depthMapUV;
+out vec3 tangentViewDir;
 
 uniform mat4 shadowMapViewProjectionMatrix;
-
+vec3 ObjSpaceViewDir (vec4 v) {
+    vec3 objSpaceCameraPos =
+		(inverseModel * vec4(cameraPosition, 1)).xyz;
+    return objSpaceCameraPos - v.xyz;
+}
 
 //main
 void main()
@@ -45,10 +50,15 @@ void main()
 	fragTangent = normalize((normalMatrix * tangent));
 	fragBitangent = normalize((normalMatrix * bitangent));
 
+
+    mat3 TBN = transpose(mat3(fragTangent, fragBitangent, fragNormal));
+	tangentViewDir = TBN * ObjSpaceViewDir(vec4(position, 1));
+	
+
 	//Vector from fragment position to camerea
 	fragToEyeWorld = cameraPosition - fragWorldPos; // Normalize in fragment shader or else it will be interpolated wrong
 	fragToLightWorld = lightDirection; // Normalize in fragment shader or else it will be interpolated wrong
 
 	//Vertex
-	fragUv = uv;
+	fragUv =   uv;
 }

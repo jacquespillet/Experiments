@@ -55,7 +55,7 @@ private:
     
     int numCascades=4;
     float zMultiplicator = 10.0f;
-    float bias = 0.0005;
+    float bias = 0.0005f;
     bool viewCascades=false;
     
 };

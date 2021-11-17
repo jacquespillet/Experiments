@@ -42,12 +42,14 @@ public:
         if(opacityTextureSet) SetTexture("opacityTexture", opacityTexture, TEXTURE_TYPE::OPACITY);
         if(ambientTextureSet) SetTexture("ambientTexture", ambientTexture, TEXTURE_TYPE::AMBIENT);
         if(normalTextureSet) SetTexture("normalTexture", normalTexture, TEXTURE_TYPE::NORMAL);
+        if(heightTextureSet) SetTexture("heightTexture", heightTexture, TEXTURE_TYPE::HEIGHT);
         
         SetInt("diffuseTextureSet", (int)diffuseTextureSet);
         SetInt("specularTextureSet", (int)specularTextureSet);
         SetInt("opacityTextureSet", (int)opacityTextureSet);
         SetInt("ambientTextureSet", (int)ambientTextureSet);
         SetInt("normalTextureSet", (int)normalTextureSet);     
+        SetInt("heightTextureSet", (int)heightTextureSet);     
         
         SetVec3("mat_ambient", ambient);
         SetVec3("mat_diffuse", diffuse);
@@ -78,6 +80,7 @@ public:
         switch (type)
         {
         case DIFFUSE:
+            info = {};
             info.srgb=true;
             diffuseTexture = GL_Texture(filename, info);
             diffuseTextureSet=true;
@@ -87,7 +90,7 @@ public:
             specularTextureSet=true;
             break;
         case HEIGHT:
-            heightTexture = GL_Texture(filename, {});
+            heightTexture = GL_Texture(filename, info);
             heightTextureSet=true;
             break;
         case OPACITY:
@@ -99,7 +102,6 @@ public:
             ambientTextureSet=true;
             break;
         case NORMAL:
-            std::cout << "LOADING NORMAL" << std::endl;
             normalTexture = GL_Texture(filename, {});
             normalTextureSet=true;
             break;

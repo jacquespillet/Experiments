@@ -120,7 +120,9 @@ void PathTracer::RenderGUI() {
         lightDirectionChanged=true;
         lightDirection = localLightDirection;
     }
-        
+    
+    ImGui::Checkbox("Compute", &compute);
+
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
 
@@ -131,7 +133,7 @@ void PathTracer::Render() {
     frame++;
     int oldPingPong = pingPongInx;
     pingPongInx = (pingPongInx+1) % 2;
-    if(mode == FRAGMENT)
+    if(!compute)
     {
 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

@@ -25,7 +25,7 @@ public:
 
         
         stbi_set_flip_vertically_on_load(true);  
-        unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nChannels, 0);
+        data = stbi_load(filename.c_str(), &width, &height, &nChannels, 0);
         
         GLint texFormat = 0;
         GLint texFormatInternal = 0;
@@ -73,7 +73,6 @@ public:
         if(createInfo.generateMipmaps) glGenerateMipmap(GL_TEXTURE_2D);
     
 
-        stbi_image_free(data);
         glBindTexture(GL_TEXTURE_2D, 0);
         loaded = true;        
     }
@@ -81,12 +80,19 @@ public:
     void Unload()
     {
         glDeleteTextures(1, &glTex);
+        stbi_image_free(data);
+    }
+
+    uint8_t *Data()
+    {
+        return data;
     }
 
     GLuint glTex;
     bool loaded=false;
     int width, height, nChannels;
     std::string filename;
+    unsigned char *data;
 
 };
 

@@ -424,11 +424,12 @@ void main()
         vec3 color = Color(rayOrigin, rayDirection, rngState);
         
         
-        vec3 lastFrameColor = texture(oldTex, uv).rgb;
+        vec3 lastFrameColor = texelFetch(oldTex, fragCoord, 0).rgb;
         color = mix(lastFrameColor, color, 1.0f / float(frame+1));
 
         outColor += color * invNumSample;
     }  
+    
     
     if(pingPongInx==0) imageStore ( tex0 , fragCoord , vec4(outColor, 1));
     if(pingPongInx==1) imageStore ( tex1 , fragCoord , vec4(outColor, 1));

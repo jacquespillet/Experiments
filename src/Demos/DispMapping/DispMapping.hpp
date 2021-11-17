@@ -6,9 +6,9 @@
 #include "GL_Helpers/GL_Mesh.hpp"
 #include "GL_Helpers/GL_Camera.hpp"
 
-class PathTracer : public Demo {
+class DispMapping : public Demo {
 public : 
-    PathTracer();
+    DispMapping();
     void Load();
     void Render();
     void RenderGUI();
@@ -28,19 +28,16 @@ private:
         
     GL_Camera cam;
 
-    GL_Mesh screenSpaceQuad;
-    GL_Shader renderingShader;
-    GL_Shader textureShader;
-
-    GLuint framebuffer, rbo;
-    GLuint pingPongTextures[2];
-    int pingPongInx=0;
-
-    uint32_t frame=0;
+    GL_Shader MeshShader;
+    GL_Mesh* Mesh;
+    GL_Material* Material;
 
     glm::vec3 lightDirection;
-    bool lightDirectionChanged=false;
 
-    GLint computeShader;
-    bool compute=true;
+    bool lightDirectionChanged=false;
+    
+    float strength = 0.05f;
+
+    GL_Texture texTest;
+    void GenerateMipMaps(uint8_t *data, int width, int height);
 };
