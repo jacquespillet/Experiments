@@ -32,6 +32,7 @@
 #include "Demos/CSM/CSM.hpp"
 #include "Demos/ShellFur/ShellFur.hpp"
 #include "Demos/DispMapping/DispMapping.hpp"
+#include "Demos/SVT/SVT.hpp"
 
 
 
@@ -166,6 +167,12 @@ struct DemoManager {
             break;
         case 20:
             demo = new DispMapping;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 21:
+            demo = new SVT;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -465,6 +472,10 @@ private:
             if(ImGui::Button("Displacement mapping", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(20);
+            }
+            if(ImGui::Button("Sparse Virtual Texturing", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(21);
             }
             demoManager.RenderGUI();
 

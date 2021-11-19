@@ -67,6 +67,8 @@
         "complex": "cpp",
         "valarray": "cpp",
         "chrono": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "deque": "cpp",
+        "queue": "cpp"
     }
 }

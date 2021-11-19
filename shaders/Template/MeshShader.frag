@@ -1,5 +1,4 @@
-//inputs
-#version 440 core
+#version 400 core
 //output
 layout(location = 0) out vec4 outputColor; 
 //main
@@ -41,17 +40,6 @@ uniform vec3 cameraPosition;
 uniform vec3 lightDirection;
 
 uniform float metallic = 0.1;
-
-uniform mat4 viewMatrix;
-uniform int cascadeCount;
-uniform float bias;
-uniform float cascadePlaneDistances[16];
-layout (std140, binding = 0) uniform LightSpaceMatrices
-{
-    mat4 lightSpaceMatrices[16];
-};
-uniform sampler2DArray shadowMap;
-uniform int viewCascades;
 
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -119,6 +107,7 @@ void BSDF(vec3 V, vec3 L, vec3 normal, vec3 finalColor, vec3 radiance, out vec3 
 
 void main()
 {
+
     //Sample diffuse texture
     //Sample global alpha
     vec4 sampleDiffuse =  texture(diffuseTexture, fragUv);
@@ -145,66 +134,13 @@ void main()
         N = normalize(TBN * N); 
     }
 
-
-   // select cascade layer
-    vec4 fragPosViewSpace = viewMatrix * vec4(fragWorldPos, 1.0);
-    float depthValue = abs(fragPosViewSpace.z);
-        
-    int layer = -1;
-    for (int i = 0; i < cascadeCount; ++i)
-    {
-        if (depthValue < cascadePlaneDistances[i])
-        {
-            layer = i;
-            break;
-        }
-    }
-    if (layer == -1)
-    {
-        layer = cascadeCount;
-    }
-    float layerFl = float(layer) / float(cascadeCount);
-    vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragWorldPos, 1.0);
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    float currentDepth = projCoords.z;
-    float shadow = 0.0f;
-    vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(
-                        shadowMap,
-                        vec3(projCoords.xy + vec2(x, y) * texelSize,
-                        layer)
-                        ).r; 
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
-    }
-    shadow /= 9.0;
-        
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
-    {
-        shadow = 0.0;
-    }
-                
-
-    if(projCoords.z > 1.0)
-    {
-        shadow = 0.0;
-    }
-    float visibility = 1.0f - shadow;
-
-
     vec3 V = normalize(cameraPosition - fragWorldPos);
     vec3 R = reflect(-V, N); 
     vec3 F0 = mix(vec3(0.04), diffuseColor, metallic);
     vec3 Lo = vec3(0.0);
         
 
-    vec3 L = lightDirection;    
+    vec3 L = -lightDirection;    
     vec3 radiance = 5 * vec3(1,1,1);        
     vec3 specular;
     vec3 diffuse;
@@ -212,18 +148,9 @@ void main()
     float NdotL = max(dot(N, L), 0.0);                
     Lo += (diffuse + specular) * NdotL; 
     
-    if(viewCascades>0)
-    {
-        vec3 finalColor = layerFl * vec3(1,1,1);
-        outputColor = vec4(finalColor, 1);
-    }
-    else
-    {
-        vec3 ambientColor =vec3(0.1) * diffuseColor;    
-        vec3 finalColor= ambientColor + Lo;
-        finalColor *= visibility;
-        float gamma = 2.2;
-        finalColor = pow(finalColor, vec3(1.0/gamma));
-        outputColor = vec4(finalColor, 1.0f);
-    }
+    vec3 ambientColor =vec3(0.1) * diffuseColor;    
+    vec3 finalColor= ambientColor + Lo;
+    float gamma = 2.2;
+    finalColor = pow(finalColor, vec3(1.0/gamma));
+    outputColor = vec4(finalColor, 1.0f);
 }

@@ -112,7 +112,7 @@ void main()
     //Sample diffuse texture
     //Sample global alpha
     vec4 sampleDiffuse =  texture(diffuseTexture, fragUv);
-    vec3 diffuseColor     = pow(sampleDiffuse.rgb, vec3(2.2));
+    vec3 diffuseColor     = sampleDiffuse.rgb;
     float alpha = sampleDiffuse.a;
     
     float roughness = 0.4;

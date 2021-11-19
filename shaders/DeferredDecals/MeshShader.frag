@@ -49,7 +49,7 @@ void main()
     float alpha = sampleDiffuse.a;
     if(alpha < 0.5) discard;
     
-    vec3 diffuseColor     = pow(sampleDiffuse.rgb, vec3(2.2));
+    vec3 diffuseColor     = sampleDiffuse.rgb;
     outputColor = vec4(diffuseColor,alpha);
 
     vec3 N = fragNormal; //CalBump()

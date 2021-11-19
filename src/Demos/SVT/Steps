@@ -1,0 +1,47 @@
+
+First step : No mipmaps
+
+Extract pages from a texture file OK 
+write the pages OK
+
+Build a visibility prepass with pages as RG, nothing in B (eventually mipmap), and tex ID in A. OK
+downsample it by 8 in each dimension OK
+
+Fill a physical texture with all visible pages OK
+Fill a page table texture with the mapping between physical and virtual. OK
+
+render OK
+
+Second step : introduce mip maps 
+
+generate mip map textures  OK
+
+Add the mipmap in the visibility prepass 
+
+Add the mipmap into the physical texture
+
+Generate mipmaps for the page table textures, and spread down the levels
+
+Sample the mipmaps (???)
+
+
+Algo from talk
+list all pages required OK
+
+add all the mipmap levels
+
+if there are too many pages, drop the high res first
+
+lock pages already present in the physical texture
+
+download all the pages
+put them in the physical texture, eliminating the least recently used first.
+
+we are allowed X pages download per frame.
+we stop downloading when we reach that level.
+we start by downloading the lowest levels first.
+when not moving the camera, we allow for more downloads
+
+Update of the page table :
+If I remove a page, I need to remove it from the page table entry.
+also update the descendants
