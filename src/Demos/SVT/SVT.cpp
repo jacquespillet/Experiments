@@ -20,9 +20,11 @@ SVT::SVT() {
 
 void SVT::BuildPages()
 {
+    numMipmaps=0;
+
     TextureCreateInfo info = {};
     info.srgb = true;
-    GL_Texture tmpTexture("resources/textures/svt/smiley_face.jpg", info);
+    GL_Texture tmpTexture("resources/textures/svt/smiley_face.png", info);
     std::vector<uint8_t> pData(pageSize * pageSize * tmpTexture.nChannels);
     
     std::vector<uint8_t> pixels(tmpTexture.width * tmpTexture.height * tmpTexture.nChannels);
@@ -39,7 +41,7 @@ void SVT::BuildPages()
     glBindTexture(GL_TEXTURE_2D, tmpTexture.glTex);
     for(int i=0; i<numMips; i++)
     {
-        glGetTexImage(GL_TEXTURE_2D, i, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+        glGetTexImage(GL_TEXTURE_2D, i, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 
         int mipNumPagesX = mipWidth  / pageSize;
         int mipNumPagesY = mipHeight / pageSize;
@@ -67,20 +69,26 @@ void SVT::BuildPages()
                 }
 
                 std::string pageFileName = "resources/textures/svt/pages/smiley_face_MIP";
-                pageFileName += std::to_string(i) + "_" + std::to_string(px) + "_" + std::to_string(py) + ".jpg";
+                pageFileName += std::to_string(i) + "_" + std::to_string(px) + "_" + std::to_string(py) + ".png";
                 std::cout << "Saving page " << pageFileName << std::endl;
 
-                stbi_write_jpg(pageFileName.c_str(), pageSize, pageSize, tmpTexture.nChannels, pData.data(), 90);
+                // stbi_write_jpg(pageFileName.c_str(), pageSize, pageSize, tmpTexture.nChannels, pData.data(), 90);
+                stbi_write_png(pageFileName.c_str(), pageSize, pageSize, 4, pData.data(), pageSize * 4);
 
             }
         }
 
         mipWidth /=2;
         mipHeight /=2;
+        numMipmaps++;
         if(mipWidth < pageSize) break;
     }    
     glBindTexture(GL_TEXTURE_2D, 0);
     tmpTexture.Unload();
+
+    presentPages.resize(numMipmaps);
+    pageTable.resize(numMipmaps);
+    pageTableFilled.resize(numMipmaps);
 }
 
 
@@ -132,18 +140,28 @@ void SVT::BuildPhysicalTextures()
     //0
     glGenTextures(1, &physicalTexture);
     glBindTexture(GL_TEXTURE_2D, physicalTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, physicalTextureSizeX, physicalTextureSizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, physicalTextureSizeX, physicalTextureSizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-    pageTable.resize(numPagesX * numPagesY, {0,0,0,0});
+    int width = numPagesX;
+    int height = numPagesY;
+    for(int i=0; i<numMipmaps; i++)
+    {
+        pageTable[i].resize(width * height, {0,0,0,255});
+        pageTableFilled[i].resize(width * height, {0,0,0,255});
+        width /=2;
+        height /=2;
+    }
     glGenTextures(1, &pageTableTexture);
     glBindTexture(GL_TEXTURE_2D, pageTableTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, numPagesX, numPagesY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -189,14 +207,16 @@ void SVT::RenderGUI() {
         lightDirectionChanged=true;
         lightDirection = localLightDirection;
     }
+    ImGui::SliderInt("Mipmap", &sampleMipmap, 0, 10);
 
     if(ImGui::Button("Build Pages"))
     {
         BuildPages();
     }
 
-    ImGui::Image((void*)(intptr_t)physicalTexture,  ImVec2((float)0.2 * physicalTextureSizeX,(float)0.2 * physicalTextureSizeY));
+    ImGui::Image((void*)(intptr_t)physicalTexture,  ImVec2((float)0.5 * physicalTextureSizeX,(float)0.5 * physicalTextureSizeY));
     ImGui::Image((void*)(intptr_t)pageTableTexture,  ImVec2((float)10 * numPagesX,(float)10 * numPagesY));
+
 
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
@@ -206,95 +226,175 @@ void SVT::RenderGUI() {
 
 void SVT::LoadVisiblePages()
 {
+   // //Reinitialize the page table
+//    for(int i=0; i<numMipmaps; i++)
+//    {
+//        for(int j=0; j<pageTable[i].size(); j++)
+//        {
+// 			pageTable[i][j] = { 0,0,0,255 };
+//        }
+//    }
+
     //Reads back the buffer
     glReadPixels(0,0,visibilityFramebufferWidth,visibilityFramebufferHeight,GL_RGBA,GL_UNSIGNED_BYTE,pixmap.data());
-    
-    //PresentPages stores all the page indices that are present in the page table, and info on where they are in the table.
-    
-    //Finds all the pages that need to be added
-    std::queue<uint32_t> toAdd;
-    std::unordered_map<uint32_t, uint64_t> visiblePages;
-    for(uint32_t i=0; i<(uint32_t)visibilityFramebufferWidth * visibilityFramebufferHeight; i++)
+    struct pageData
     {
-       uint32_t inx = (uint32_t)pixmap[i].g * numPagesX + (uint32_t)pixmap[i].r;
+        uint32_t index;
+        uint8_t mipmap;
+    };
 
-       visiblePages[inx] = 0;
-
-       //If its not already present
-       if(presentPages.find(inx) == presentPages.end())
-       {
-           toAdd.push(inx);
-           presentPages[inx] = {frame, 0};
-       }
-    }
-
-    //Find the pages that need to be removed
-    std::queue<uint32_t> toRemove;
-    for (std::pair<uint32_t, PageInfo> pageIndex : presentPages) //For each page in the cache
+    uint32_t mipDivider=1;
+    int numPages = numPagesX;
+    for(int mip=0; mip<numMipmaps; mip++)
     {
-        if(visiblePages.find(pageIndex.first) == visiblePages.end())//Check if it is visible. If not, mark it as to remove. Optimization : first sort by last used frame
+        //PresentPages stores all the page indices that are present in the page table, and info on where they are in the table.
+        //Finds all the pages that need to be added
+        std::queue<pageData> toAdd;
+        std::unordered_map<uint32_t, uint64_t> visiblePages;
+        for(uint32_t i=0; i<(uint32_t)visibilityFramebufferWidth * visibilityFramebufferHeight; i++)
         {
-            toRemove.push(pageIndex.first); //add this as to remove
-        }
-    }
-    // std::cout << frame << " " << presentPages.size() << " " <<   visiblePages.size() << " " << toAdd.size() << " " << toRemove.size() << std::endl; 
-   
-   
-    //Copying pages to the physical texture
-    while(toAdd.size() !=0)
-    {
-        //The page we are adding
-        uint32_t pageToAdd = toAdd.front();
-        toAdd.pop();
+            //Index of the tile in the virtual mip map
+            uint32_t x = (uint32_t)pixmap[i].r / mipDivider;
+            uint32_t y = (uint32_t)pixmap[i].g / mipDivider;
+            uint32_t inx = y * numPages + x;
+            
+            //Target mip map at this position
+            uint8_t pixMipmap = pixmap[i].b;
+            
+            //??
+            visiblePages[inx] = 0;
 
-        //Find where to add
-        uint32_t indexToReplace = 0;
-        if(toRemove.size()>0)
-        {
-            //remove the old one from presentPages
-            uint32_t index = toRemove.front();
-            PageInfo pageToReplace = presentPages[index];
-            toRemove.pop();
-            presentPages.erase(index);
-            indexToReplace = pageToReplace.tablePosition;
-        }
-        else
-        {
-            indexToReplace = lastUsedIndex++;
+            //If its not already present
+            if(presentPages[mip].find(inx) == presentPages[mip].end())
+            {
+                toAdd.push({inx, pixMipmap});
+                presentPages[mip][inx] = {frame, 0}; //Mark this index as present in the texture, but we don't know where yet
+            }
         }
 
-        //Add the new one in presentPages
-        presentPages[pageToAdd] = {frame, indexToReplace};
+        //ONLY DO THAT WHEN CACHE IS FULL :
+        //Find the pages that need to be removed
+        // std::queue<uint32_t> toRemove;
+        // for (std::pair<uint32_t, PageInfo> pageIndex : presentPages[mip]) //For each page in the cache
+        // {
+        //     if(visiblePages.find(pageIndex.first) == visiblePages.end())//Check if it is visible. If not, mark it as to remove. Optimization : first sort by last used frame
+        //     {
+        //         toRemove.push(pageIndex.first); //add this as to remove
+        //     }
+        // }
+        // std::cout << frame << " " << presentPages.size() << " " <<   visiblePages.size() << " " << toAdd.size() << " " << toRemove.size() << std::endl; 
+    
+    
+        //Copying pages to the physical texture
+        while(toAdd.size() !=0)
+        {
+            //The page we are adding
+            pageData data = toAdd.front();
+            toAdd.pop();
+            uint32_t pageToAdd = data.index;
+            uint8_t pixMipmap = data.mipmap;
+
+            //Find where to add
+            uint32_t indexToReplace = 0;
+
+            //If still space in the cache
+            if(lastUsedIndex < (uint32_t)(pagesPerLine * pagesPerLine))
+            {
+                indexToReplace = lastUsedIndex++;
+            }
+            // else
+            // {
+            //     //remove the old one from presentPages
+            //     uint32_t index = toRemove.front();
+            //     PageInfo pageToReplace = presentPages[mip][index];
+            //     toRemove.pop();
+            //     presentPages[mip].erase(index);
+            //     indexToReplace = pageToReplace.tablePosition;
+            // }
+
+            //Add the new one in presentPages
+            presentPages[mip][pageToAdd] = {frame, indexToReplace};
 
 
-        int destXPageSpace = (indexToReplace % pagesPerLine);
-        int destYPageSpace = (indexToReplace / pagesPerLine);
-        int destX = destXPageSpace * pageSize;
-        int destY = destYPageSpace * pageSize;
+            int destXPageSpace = (indexToReplace % pagesPerLine);
+            int destYPageSpace = (indexToReplace / pagesPerLine);
+            int destX = destXPageSpace * pageSize;
+            int destY = destYPageSpace * pageSize;
 
-        //Move tile index to toRemoveIndex
-        glBindTexture(GL_TEXTURE_2D, physicalTexture);
-        int px = pageToAdd % numPagesX;
-        int py = pageToAdd / numPagesX;
-        std::string pageFileName = "resources/textures/svt/pages/smiley_face_MIP0_";
-        pageFileName += std::to_string(px) + "_" + std::to_string(py) + ".jpg";
-        int width, height, nChannels;
-        
-        pageData = stbi_load(pageFileName.c_str(), &width, &height, &nChannels, 0);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, destX, destY, pageSize, pageSize, GL_RGB, GL_UNSIGNED_BYTE, pageData);       
-        stbi_image_free(pageData);
-        glBindTexture(GL_TEXTURE_2D, 0);
+            //Move tile index to toRemoveIndex
+            {
+                //Load page
+                int px = pageToAdd % numPages;
+                int py = pageToAdd / numPages;
+                std::string pageFileName = "resources/textures/svt/pages/smiley_face_MIP";
+                pageFileName += std::to_string(mip) + "_" + std::to_string(px) + "_" + std::to_string(py) + ".png";
+                int width, height, nChannels;
+				unsigned char *pageData = stbi_load(pageFileName.c_str(), &width, &height, &nChannels, 0);
 
-        //Maintain page table
-        pageTable[pageToAdd] = {(uint8_t)destXPageSpace, (uint8_t)destYPageSpace, 0, 0};
+                //Send to gpu
+                glBindTexture(GL_TEXTURE_2D, physicalTexture);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, destX, destY, pageSize, pageSize, GL_RGBA, GL_UNSIGNED_BYTE, pageData);       
+                glBindTexture(GL_TEXTURE_2D, 0);
+                
+				stbi_image_free(pageData);
+                
+                //Maintain page table
+                pageTable[mip][pageToAdd] = {(uint8_t)destXPageSpace, (uint8_t)destYPageSpace, (uint8_t)(pixMipmap), 0};
+            }
+        }
+        mipDivider *=2;
+        numPages /=2;
     }
 
-    
-    
-    
+    pageTableFilled = pageTable;
+
+    //Spreading data down the mip pyramid
+    for(int baseMip=0; baseMip < numMipmaps-1; baseMip++)
+    {
+        int baseMipSize = (int)pow(2, (numMipmaps - 1)-baseMip);
+        for(int y=0; y<baseMipSize; y++)
+        {
+            for(int x=0; x<baseMipSize; x++)
+            {
+                int baseIndex = y * baseMipSize + x;
+                bool filled = pageTable[baseMip][baseIndex].a != 255;
+                
+				int parentMip = baseMip+1;
+                int parentMipSize = (int)pow(2, (numMipmaps - 1) - parentMip);
+                while(!filled)
+                {
+					//Sample parent at this position
+                    int xparent = (int)(((float)x / (float)baseMipSize) * parentMipSize);
+                    int yparent = (int)(((float)y / (float)baseMipSize) * parentMipSize);
+                    int parentIndex = yparent * parentMipSize + xparent;
+                    rgba parentRGBA = pageTable[parentMip][parentIndex];
+
+					//If it's filled, use the same value
+                    if(parentRGBA.a != 255) 
+                    {
+                        pageTableFilled[baseMip][baseIndex] = parentRGBA;
+                        break;
+                    }
+
+                    parentMip++;
+					parentMipSize /= 2;
+                }
+            }            
+        }
+    }
+
+    //Upload new page table
     glBindTexture(GL_TEXTURE_2D, pageTableTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, numPagesX, numPagesY, 0, GL_RGBA, GL_UNSIGNED_BYTE, pageTable.data());
-    glBindTexture(GL_TEXTURE_2D, 0);
+    int width = numPagesX;
+    int height = numPagesY;
+    for(int mip=0; mip<numMipmaps; mip++)
+    {
+        glTexImage2D(GL_TEXTURE_2D, mip, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pageTableFilled[mip].data());
+        width /=2;
+        height /=2;
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);    
+    
 }
 
 void SVT::Render() {
@@ -332,10 +432,11 @@ void SVT::Render() {
     glBindTexture(GL_TEXTURE_2D, physicalTexture);
     glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "physicalTexture"), 1);
 
+    glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "sampleMipMap"), sampleMipmap);
+    glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "numMipmaps"), numMipmaps);
 
     glUniform2fv(glGetUniformLocation(MeshShader.programShaderObject, "physicalTexturePageSize"), 1, glm::value_ptr(glm::vec2(pagesPerLine, pagesPerLine)));
-    glUniform2fv(glGetUniformLocation(MeshShader.programShaderObject, "numPages"), 1, glm::value_ptr(glm::vec2(numPagesX, numPagesY)));
-
+    
     Mesh->Render(cam, MeshShader.programShaderObject);
     // Mesh->RenderShader(MeshShader.programShaderObject);
 

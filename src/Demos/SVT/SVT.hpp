@@ -44,6 +44,7 @@ private:
     int pageSize = 64;
     int numPagesX;
     int numPagesY;
+    int numMipmaps;
 
     void BuildVisibilityFramebuffer();
     int downSampleFactor=8;
@@ -62,20 +63,22 @@ private:
         uint64_t frame; 
         uint32_t tablePosition;
     };
-    std::unordered_map<uint32_t, PageInfo> presentPages; //First : index of the page in the page table, second: frame at which it was added, and position in the page table where it is
+    std::vector<std::unordered_map<uint32_t, PageInfo>> presentPages; //First : index of the page in the page table, second: frame at which it was added, and position in the page table where it is
     
-    unsigned char *pageData;
-
+    
     void BuildPhysicalTextures();
     const int pagesPerLine = 20;
     int physicalTextureSizeX = pageSize * pagesPerLine;
     int physicalTextureSizeY = pageSize * pagesPerLine;
     GLuint physicalTexture;
-    std::vector<rgba> pageTable;
+    std::vector<std::vector<rgba>> pageTable;
+    std::vector<std::vector<rgba>> pageTableFilled;
     GLuint pageTableTexture;
 
     uint32_t lastUsedIndex=0;
 
 
     uint64_t frame;
+
+    int sampleMipmap=0;
 };
