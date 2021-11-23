@@ -160,11 +160,12 @@ void SVT::BuildPhysicalTextures()
     glBindTexture(GL_TEXTURE_2D, pageTableTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, numPagesX, numPagesY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 }
@@ -226,14 +227,10 @@ void SVT::RenderGUI() {
 
 void SVT::LoadVisiblePages()
 {
-   // //Reinitialize the page table
-//    for(int i=0; i<numMipmaps; i++)
-//    {
-//        for(int j=0; j<pageTable[i].size(); j++)
-//        {
-// 			pageTable[i][j] = { 0,0,0,255 };
-//        }
-//    }
+    //Reinitialize the page table
+
+    //TODO:
+
 
     //Reads back the buffer
     glReadPixels(0,0,visibilityFramebufferWidth,visibilityFramebufferHeight,GL_RGBA,GL_UNSIGNED_BYTE,pixmap.data());
@@ -265,27 +262,31 @@ void SVT::LoadVisiblePages()
             visiblePages[inx] = 0;
 
             //If its not already present
-            if(presentPages[mip].find(inx) == presentPages[mip].end())
+            std::unordered_map<uint32_t, PageInfo>::iterator iterator = presentPages[mip].find(inx);
+            if(iterator == presentPages[mip].end())
             {
                 toAdd.push({inx, pixMipmap});
                 presentPages[mip][inx] = {frame, 0}; //Mark this index as present in the texture, but we don't know where yet
             }
+            else
+            {
+                pageTable[mip][inx].b = pixMipmap;
+            }
         }
 
-        //ONLY DO THAT WHEN CACHE IS FULL :
+        //Do that only when the cache is full?
         //Find the pages that need to be removed
-        // std::queue<uint32_t> toRemove;
-        // for (std::pair<uint32_t, PageInfo> pageIndex : presentPages[mip]) //For each page in the cache
-        // {
-        //     if(visiblePages.find(pageIndex.first) == visiblePages.end())//Check if it is visible. If not, mark it as to remove. Optimization : first sort by last used frame
-        //     {
-        //         toRemove.push(pageIndex.first); //add this as to remove
-        //     }
-        // }
-        // std::cout << frame << " " << presentPages.size() << " " <<   visiblePages.size() << " " << toAdd.size() << " " << toRemove.size() << std::endl; 
+        std::queue<uint32_t> toRemove;
+        for (std::pair<uint32_t, PageInfo> pageIndex : presentPages[mip]) //For each page in the cache
+        {
+            if(visiblePages.find(pageIndex.first) == visiblePages.end())//Check if it is visible. If not, mark it as to remove. Optimization : first sort by last used frame
+            {
+                toRemove.push(pageIndex.first); //add this as to remove
+            }
+        }
     
     
-        //Copying pages to the physical texture
+        //If there are new pages to add
         while(toAdd.size() !=0)
         {
             //The page we are adding
@@ -302,15 +303,15 @@ void SVT::LoadVisiblePages()
             {
                 indexToReplace = lastUsedIndex++;
             }
-            // else
-            // {
-            //     //remove the old one from presentPages
-            //     uint32_t index = toRemove.front();
-            //     PageInfo pageToReplace = presentPages[mip][index];
-            //     toRemove.pop();
-            //     presentPages[mip].erase(index);
-            //     indexToReplace = pageToReplace.tablePosition;
-            // }
+            else
+            {
+                //remove the old one from presentPages
+                uint32_t index = toRemove.front();
+                PageInfo pageToReplace = presentPages[mip][index];
+                toRemove.pop();
+                presentPages[mip].erase(index);
+                indexToReplace = pageToReplace.tablePosition;
+            }
 
             //Add the new one in presentPages
             presentPages[mip][pageToAdd] = {frame, indexToReplace};

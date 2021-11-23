@@ -63,8 +63,10 @@ private:
         uint64_t frame; 
         uint32_t tablePosition;
     };
-    std::vector<std::unordered_map<uint32_t, PageInfo>> presentPages; //First : index of the page in the page table, second: frame at which it was added, and position in the page table where it is
-    
+
+    //Key : pageID
+    //Value : second: frame at which it was added, and position in the physical texture where it is
+    std::vector<std::unordered_map<uint32_t, PageInfo>> presentPages; 
     
     void BuildPhysicalTextures();
     const int pagesPerLine = 20;
@@ -81,4 +83,6 @@ private:
     uint64_t frame;
 
     int sampleMipmap=0;
+
+    int limitAddPerFrame = 10;
 };

@@ -31,38 +31,13 @@ float mipmapLevel(vec2 uv)  {
 
 void main()
 {
-
-    //Sample diffuse texture
-    //Sample global alpha
-
-
-#if 0
-    // float mipmap = textureLod(pageTableTexture, fragUv, 0).b * 255.0;
-    // vec4 pageTableEntry = textureLod(pageTableTexture, fragUv, sampleMipMap) * 255.0;
-    // float mip = floor(mipmapLevel(fragUv));
-    // float mip = numMipmaps-1- mipmapLevel(fragUv);
-    float mip = sampleMipMap;
-    // float mip = fragUv.x * numMipmaps;
+    float mip = clamp(floor(mipmapLevel(fragUv)), 0, numMipmaps);
     vec4 pageTableEntry = textureLod(pageTableTexture, fragUv, mip) * 255.0;
-    
-    //NOT WORKING
-    vec2 withinPageCoord =  fragUv * exp2(numMipmaps-1- mip);
-    withinPageCoord = fract(withinPageCoord);
+    vec2 withinPageCoord =  fract(fragUv * exp2(numMipmaps-1- mip));
 
     vec2 finalCoord = pageTableEntry.rg + withinPageCoord;
     finalCoord /= physicalTexturePageSize;
-    
-#else
-    // float bias = 6 - 0.5 + 0;
-    // vec4 pageTableEntry = texture2D(pageTableTexture, fragUv, bias) * 255.0;
-    // float mipmap = textureLod(pageTableTexture, fragUv, 0).b * 255.0;
-    vec4 pageTableEntry = texture(pageTableTexture, fragUv) * 255.0;
-    
-    vec2 pageCoord = pageTableEntry.rg; // blue-green has x-y coordinates
-    vec2 withinPageCoord = fract(fragUv * exp2(pageTableEntry.b));
-    vec2 finalCoord = ((pageCoord + withinPageCoord) / physicalTexturePageSize);
-#endif
-  
+      
     vec3 finalColor = texture(physicalTexture, finalCoord).rgb;
     float gamma = 2.2;
     finalColor = pow(finalColor, vec3(1.0/gamma));

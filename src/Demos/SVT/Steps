@@ -16,13 +16,22 @@ Second step : introduce mip maps
 
 generate mip map textures  OK
 
-Add the mipmap in the visibility prepass 
+Add the mipmap in the visibility prepass OK
 
-Add the mipmap into the physical texture
+Add the mipmap into the physical texture OK
 
-Generate mipmaps for the page table textures, and spread down the levels
+Generate mipmaps for the page table textures, and spread down the levels OK 
 
-Sample the mipmaps (???)
+Sample the mipmaps OK
+
+Third step : Optimizations:
+//  Refactor the readback loop
+//  Reduce the cache size and see what happens
+//  Ideas :
+//      When the cache is full, remove non visible tiles, starting with the least recently used ones
+//      If it's still full, only upload lower mip maps
+
+
 
 
 Algo from talk
