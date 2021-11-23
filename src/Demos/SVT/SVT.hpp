@@ -82,7 +82,9 @@ private:
 
     uint64_t frame;
 
-    int sampleMipmap=0;
+    float sampleMipmap=0;
 
-    int limitAddPerFrame = 10;
+    int limitAddPerFrame = 1;
+
+    bool doSpread=true;
 };

@@ -208,8 +208,8 @@ void SVT::RenderGUI() {
         lightDirectionChanged=true;
         lightDirection = localLightDirection;
     }
-    ImGui::SliderInt("Mipmap", &sampleMipmap, 0, 10);
-
+    ImGui::SliderFloat("Mipmap", &sampleMipmap, 0, 5);
+    ImGui::Checkbox("Spread", &doSpread);
     if(ImGui::Button("Build Pages"))
     {
         BuildPages();
@@ -229,9 +229,6 @@ void SVT::LoadVisiblePages()
 {
     //Reinitialize the page table
 
-    //TODO:
-
-
     //Reads back the buffer
     glReadPixels(0,0,visibilityFramebufferWidth,visibilityFramebufferHeight,GL_RGBA,GL_UNSIGNED_BYTE,pixmap.data());
     struct pageData
@@ -240,12 +237,18 @@ void SVT::LoadVisiblePages()
         uint8_t mipmap;
     };
 
-    uint32_t mipDivider=1;
-    int numPages = numPagesX;
-    for(int mip=0; mip<numMipmaps; mip++)
+    uint32_t mipDivider=std::exp2(numMipmaps-1);
+    int numPages = 1;
+
+    int added = 0;
+    bool mustBreak=false;
+    // for(int mip=0; mip<numMipmaps; mip++)
+    for(int mip=numMipmaps-1; mip>=0; mip--)
     {
-        //PresentPages stores all the page indices that are present in the page table, and info on where they are in the table.
+         //PresentPages stores all the page indices that are present in the page table, and info on where they are in the table.
         //Finds all the pages that need to be added
+        std::vector<std::unordered_map<uint32_t, PageInfo>> addedPages = presentPages; 
+
         std::queue<pageData> toAdd;
         std::unordered_map<uint32_t, uint64_t> visiblePages;
         for(uint32_t i=0; i<(uint32_t)visibilityFramebufferWidth * visibilityFramebufferHeight; i++)
@@ -253,27 +256,27 @@ void SVT::LoadVisiblePages()
             //Index of the tile in the virtual mip map
             uint32_t x = (uint32_t)pixmap[i].r / mipDivider;
             uint32_t y = (uint32_t)pixmap[i].g / mipDivider;
-            uint32_t inx = y * numPages + x;
+            uint32_t pixelID = y * numPages + x;
             
             //Target mip map at this position
             uint8_t pixMipmap = pixmap[i].b;
             
             //??
-            visiblePages[inx] = 0;
+            visiblePages[pixelID] = 0;
 
             //If its not already present
-            std::unordered_map<uint32_t, PageInfo>::iterator iterator = presentPages[mip].find(inx);
-            if(iterator == presentPages[mip].end())
+            std::unordered_map<uint32_t, PageInfo>::iterator iterator = addedPages[mip].find(pixelID);
+            if(iterator == addedPages[mip].end())
             {
-                toAdd.push({inx, pixMipmap});
-                presentPages[mip][inx] = {frame, 0}; //Mark this index as present in the texture, but we don't know where yet
+                toAdd.push({pixelID, pixMipmap});
+                addedPages[mip][pixelID] = {frame, 0}; //Mark this index as present in the texture, but we don't know where yet
             }
-            else
-            {
-                pageTable[mip][inx].b = pixMipmap;
-            }
+            // else
+            // {
+            //     pageTable[mip][pixelID].b = pixMipmap;
+            // }
         }
-
+        
         //Do that only when the cache is full?
         //Find the pages that need to be removed
         std::queue<uint32_t> toRemove;
@@ -284,7 +287,6 @@ void SVT::LoadVisiblePages()
                 toRemove.push(pageIndex.first); //add this as to remove
             }
         }
-    
     
         //If there are new pages to add
         while(toAdd.size() !=0)
@@ -340,47 +342,65 @@ void SVT::LoadVisiblePages()
 				stbi_image_free(pageData);
                 
                 //Maintain page table
-                pageTable[mip][pageToAdd] = {(uint8_t)destXPageSpace, (uint8_t)destYPageSpace, (uint8_t)(pixMipmap), 0};
+                pageTable[mip][pageToAdd] = {(uint8_t)destXPageSpace, (uint8_t)destYPageSpace, (uint8_t)(mip), 0};
+            }
+
+            if(++added >= limitAddPerFrame) {
+                mustBreak=true;
+                break;
             }
         }
-        mipDivider *=2;
-        numPages /=2;
+
+        if(mustBreak) break;
+
+        mipDivider /=2;
+        numPages *=2;
     }
 
     pageTableFilled = pageTable;
-
-    //Spreading data down the mip pyramid
-    for(int baseMip=0; baseMip < numMipmaps-1; baseMip++)
+    
+    if(doSpread)
     {
-        int baseMipSize = (int)pow(2, (numMipmaps - 1)-baseMip);
-        for(int y=0; y<baseMipSize; y++)
+    //     // //Spreading data down the mip pyramid
+        for(int baseMip=0; baseMip < numMipmaps-1; baseMip++)
         {
-            for(int x=0; x<baseMipSize; x++)
+            //8-4-2
+            int baseMipSize = (int)pow(2, (numMipmaps - 1)-baseMip);
+            for(int y=0; y<baseMipSize; y++)
             {
-                int baseIndex = y * baseMipSize + x;
-                bool filled = pageTable[baseMip][baseIndex].a != 255;
-                
-				int parentMip = baseMip+1;
-                int parentMipSize = (int)pow(2, (numMipmaps - 1) - parentMip);
-                while(!filled)
+                for(int x=0; x<baseMipSize; x++)
                 {
-					//Sample parent at this position
-                    int xparent = (int)(((float)x / (float)baseMipSize) * parentMipSize);
-                    int yparent = (int)(((float)y / (float)baseMipSize) * parentMipSize);
-                    int parentIndex = yparent * parentMipSize + xparent;
-                    rgba parentRGBA = pageTable[parentMip][parentIndex];
-
-					//If it's filled, use the same value
-                    if(parentRGBA.a != 255) 
+                    int baseIndex = y * baseMipSize + x;
+                    //pageTableFilled[baseMip][baseIndex] = {0,0,0,0};
+                    bool filled = pageTable[baseMip][baseIndex].a != 255;
+                    if(filled)
                     {
-                        pageTableFilled[baseMip][baseIndex] = parentRGBA;
-                        break;
+						pageTableFilled[baseMip][baseIndex].b = (uint8_t)(baseMip);
+						continue;
                     }
+                    int parentMip = baseMip+1;
+                    int parentMipSize = (int)pow(2, (numMipmaps - 1) - parentMip);
+                    while(!filled)
+                    {
+                        //Sample parent at this position
+                        int xparent = (int)(((float)x / (float)baseMipSize) * parentMipSize);
+                        int yparent = (int)(((float)y / (float)baseMipSize) * parentMipSize);
+                        int parentIndex = yparent * parentMipSize + xparent;
+                        rgba parentRGBA = pageTable[parentMip][parentIndex];
 
-                    parentMip++;
-					parentMipSize /= 2;
-                }
-            }            
+                        //If it's filled, use the same value
+                        if(parentRGBA.a != 255) 
+                        {
+                            pageTableFilled[baseMip][baseIndex] = parentRGBA;
+                            pageTableFilled[baseMip][baseIndex].b = (uint8_t)(parentMip);
+                            break;
+                        }
+
+                        parentMip++;
+                        parentMipSize /= 2;
+                    }
+                }            
+            }
         }
     }
 
@@ -400,7 +420,6 @@ void SVT::LoadVisiblePages()
 
 void SVT::Render() {
     glEnable(GL_DEPTH_TEST);
-
     {
         glViewport(0, 0, visibilityFramebufferWidth, visibilityFramebufferHeight);
         glBindFramebuffer(GL_FRAMEBUFFER, visibilityFramebuffer);
@@ -408,6 +427,7 @@ void SVT::Render() {
         glm::vec3 normalizedLightDirection = glm::normalize(lightDirection);
         glUseProgram(visibilityShader.programShaderObject);
         
+        glUniform1i(glGetUniformLocation(visibilityShader.programShaderObject, "numMipmaps"), numMipmaps);
         glUniform1i(glGetUniformLocation(visibilityShader.programShaderObject, "numPagesX"), numPagesX);
         glUniform1i(glGetUniformLocation(visibilityShader.programShaderObject, "numPagesY"), numPagesY);
         glUniform2fv(glGetUniformLocation(visibilityShader.programShaderObject, "virtualTextureSize"), 1, glm::value_ptr(glm::vec2(virtualTextureWidth, virtualTextureHeight)));
@@ -416,7 +436,8 @@ void SVT::Render() {
         
         LoadVisiblePages();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
+    }   
+
 
 
     glViewport(0, 0, windowWidth, windowHeight);
@@ -433,16 +454,15 @@ void SVT::Render() {
     glBindTexture(GL_TEXTURE_2D, physicalTexture);
     glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "physicalTexture"), 1);
 
-    glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "sampleMipMap"), sampleMipmap);
+    glUniform1f(glGetUniformLocation(MeshShader.programShaderObject, "sampleMipMap"), sampleMipmap);
     glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "numMipmaps"), numMipmaps);
 
     glUniform2fv(glGetUniformLocation(MeshShader.programShaderObject, "physicalTexturePageSize"), 1, glm::value_ptr(glm::vec2(pagesPerLine, pagesPerLine)));
     
     Mesh->Render(cam, MeshShader.programShaderObject);
     // Mesh->RenderShader(MeshShader.programShaderObject);
-
-
-    frame++;
+    
+    frame++;   
 }
 
 void SVT::Unload() {
@@ -468,7 +488,9 @@ void SVT::MouseMove(float x, float y) {
 }
 
 void SVT::LeftClickDown() {
+
     cam.mousePressEvent(0);
+ 
 }
 
 void SVT::LeftClickUp() {
@@ -476,6 +498,9 @@ void SVT::LeftClickUp() {
 }
 
 void SVT::RightClickDown() {
+
+ 
+
     cam.mousePressEvent(1);
 }
 

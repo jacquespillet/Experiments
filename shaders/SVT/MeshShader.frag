@@ -18,7 +18,7 @@ in vec4 depthMapUV;
 uniform sampler2D pageTableTexture;
 uniform sampler2D physicalTexture;
 uniform vec2 physicalTexturePageSize;
-uniform int sampleMipMap;
+uniform float sampleMipMap;
 uniform int numMipmaps;
 
 
@@ -31,12 +31,54 @@ float mipmapLevel(vec2 uv)  {
 
 void main()
 {
-    float mip = clamp(floor(mipmapLevel(fragUv)), 0, numMipmaps);
-    vec4 pageTableEntry = textureLod(pageTableTexture, fragUv, mip) * 255.0;
-    vec2 withinPageCoord =  fract(fragUv * exp2(numMipmaps-1- mip));
+#if 1
+    int maxMipmap = numMipmaps-1;
+    //Problem :
+    //We sample the page table, and the max resolution of the tile is not yet available.
+    //This means we are redirected to a lower mip map, but we do not know which!
+    //So we need to read which mip map this is in the b channel.
 
+    // vec4 pageTableEntry = textureLod(pageTableTexture, fragUv, mip) * 255.0;
+    
+    float sampleMip = floor(mipmapLevel(fragUv));
+    // float sampleMip = floor(sampleMipMap);
+    // float sampleMip = 3;
+    vec4 pageTableEntry = textureLod(pageTableTexture, fragUv, sampleMip) * 255.0;
+    
+    float mip = max(0, floor(maxMipmap - (pageTableEntry.b-0.5)));
+    
+    float texSize = exp2(mip);
+
+    // float texSize = exp2(numMipmaps - 1 - floor(pageTableEntry.b));
+    vec2 withinPageCoord =  fract(fragUv * texSize);
+    // vec2 withinPageCoord =  fract(fragUv * exp2(numMipmaps-1-pageTableEntry.b));
     vec2 finalCoord = pageTableEntry.rg + withinPageCoord;
     finalCoord /= physicalTexturePageSize;
+
+    outputColor = vec4(mip/maxMipmap, mip/maxMipmap, mip/maxMipmap, 1);
+    
+    // if(sampleMipMap==0) {
+    //     outputColor = vec4(mip / float(numMipmaps), mip / float(numMipmaps), mip / float(numMipmaps), 1);
+    //     return;
+    // }
+    // else
+    // {
+    //     outputColor = vec4(pageTableEntry.b/float(numMipmaps), pageTableEntry.b/float(numMipmaps), pageTableEntry.b/float(numMipmaps), 1);
+    //     return;
+    // }
+#else
+    // float bias = sampleMipMap;
+
+    vec4 pageTableEntry = texture2D(pageTableTexture, fragUv) * 255.0;
+    float mipExp = exp2(floor(pageTableEntry.b)); // alpha channel has mipmap-level
+    vec2 withinPageCoord = fract(fragUv * mipExp);
+    
+    
+    vec2 pageCoord = pageTableEntry.rg; // blue-green has x-y coordinates
+    vec2 finalCoord =  ((pageCoord + withinPageCoord) / physicalTexturePageSize);
+    // outputColor = vec4(pageTableEntry.b/float(numMipmaps), pageTableEntry.b/float(numMipmaps), pageTableEntry.b/float(numMipmaps), 1);
+    // return;
+#endif
       
     vec3 finalColor = texture(physicalTexture, finalCoord).rgb;
     float gamma = 2.2;
