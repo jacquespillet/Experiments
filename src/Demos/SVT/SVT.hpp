@@ -84,7 +84,7 @@ private:
 
     float sampleMipmap=0;
 
-    int limitAddPerFrame = 1;
+    int limitAddPerFrame = 2;
 
     bool doSpread=true;
 };

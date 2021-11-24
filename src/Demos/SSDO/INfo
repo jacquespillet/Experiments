@@ -1,0 +1,16 @@
+Same algorithm as SSAO in terms of rendering passes, the only difference is instead of computing a single occlusion term, we compute a vector3 in the ssao shader.
+
+We compute 2 different terms actually : 
+a directional oclusion term, and a 1 bounce radiance term.
+
+For each sample, we have a point within the oriented hemisphere towards the normal.
+
+Directional occlusion:
+We calculate the depth of this sample in view space, and we compare it with the depth stored into the depth buffer.
+if they're too far apart, we discard the calculation
+if the depth of the sample is smaller than the stored depth, it is not occluding.
+we modulate the occlusion value with a cosine term between the sample direction and the normal, and modulate this with the radiance in the direction of the sample.
+
+1 bounce radiance :
+we find the color of the pixel at the current sample.
+we calculate a geometric term that tells us how much the sample color bleeds on the current pixel, based on distance and normals of the sample and of the current pixel.

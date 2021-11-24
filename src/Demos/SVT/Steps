@@ -29,12 +29,8 @@ Fix : do not use the mipmap from the first pass, but set it in from the cpu
 WE DO NOT NEED THE MIP MAP FROM THE FIRST PASS !
 
 NEXT :
-//  Reduce the cache size and see what happens
-//  Refactor the readback loop
-//  Ideas :
-//      When the cache is full, remove non visible tiles, starting with the least recently used ones
-//      If it's still full, only upload lower mip maps
-
+Reduce the cache size and see what happens
+Handle page borders
 
 
 
