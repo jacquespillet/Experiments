@@ -74,19 +74,22 @@ public:
     void SetVec3(std::string varName, glm::vec3 vec);
     void SetTexture(std::string varName, const GL_Texture& texture, int numBind);
 
-    void LoadTexture(std::string filename, TEXTURE_TYPE type)
+    void LoadTexture(std::string filename, TEXTURE_TYPE type, bool flip=false)
     {
         TextureCreateInfo info = {};
         switch (type)
         {
         case DIFFUSE:
             info = {};
+            info.flip = flip;
             info.srgb=true;
             diffuseTexture = GL_Texture(filename, info);
             diffuseTextureSet=true;
             break;
         case SPECULAR:
-            specularTexture = GL_Texture(filename, {});
+            info = {};
+            info.flip = flip;
+            specularTexture = GL_Texture(filename, info);
             specularTextureSet=true;
             break;
         case HEIGHT:
@@ -94,15 +97,21 @@ public:
             heightTextureSet=true;
             break;
         case OPACITY:
-            opacityTexture = GL_Texture(filename, {});
+            info = {};
+            info.flip = flip;
+            opacityTexture = GL_Texture(filename, info);
             opacityTextureSet=true;
             break;
         case AMBIENT:
-            ambientTexture = GL_Texture(filename, {});
+            info = {};
+            info.flip = flip;
+            ambientTexture = GL_Texture(filename, info);
             ambientTextureSet=true;
             break;
         case NORMAL:
-            normalTexture = GL_Texture(filename, {});
+            info = {};
+            info.flip = flip;
+            normalTexture = GL_Texture(filename, info);
             normalTextureSet=true;
             break;
         default:

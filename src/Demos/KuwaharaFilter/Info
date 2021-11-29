@@ -1,0 +1,19 @@
+Simple kuwahara :
+For each pixel, builds for square windows around it of size kernelRadius x kernelRadius.
+inside of each of these boxes, compute the mean and the variance
+calculate which of these 4 boxes has the least variance, and use the mean of this box as the output
+
+Generalized kuwahara :
+instead of using boxes subregions, use a circle that we subdivide into N sectors.
+We will compute mean and variance inside of each of these regions.
+we use a weighing function for sampling inside of each of the regions.
+
+Algo :
+for each pixel :
+    Loop through all the pixels inside the circle around it : kernelPixel
+        for each subregions in N
+            check the weight of kernelPixel in the region k
+                add to the running average, variance, and total of the weight
+    
+    Normalize the variance and mean of each region
+    each region participates in the output, using a weighing function of regionMean / (1.0 + pow(255.0 * sigma2 , 0.5 * q));

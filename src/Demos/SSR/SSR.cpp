@@ -20,7 +20,7 @@ void SSR::Load() {
         Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
         if(i==46)
         {
-            Meshes[i]->material->roughness=0.1f;
+            Meshes[i]->material->roughness=0.7f;
         }
         else
         {

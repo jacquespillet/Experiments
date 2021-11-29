@@ -10,6 +10,7 @@ struct TextureCreateInfo {
     GLint magFilter = GL_LINEAR;
     bool generateMipmaps=true;
     bool srgb=false;
+    bool flip=true;
 };
 
 class GL_Texture {
@@ -23,8 +24,7 @@ public:
         glGenTextures(1, &glTex);
         glBindTexture(GL_TEXTURE_2D, glTex);
 
-        
-        stbi_set_flip_vertically_on_load(true);  
+        if(createInfo.flip) stbi_set_flip_vertically_on_load(true);  
         data = stbi_load(filename.c_str(), &width, &height, &nChannels, 0);
         
         GLint texFormat = 0;

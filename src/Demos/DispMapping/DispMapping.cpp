@@ -16,7 +16,7 @@ DispMapping::DispMapping() {
 void DispMapping::GenerateMipMaps(uint8_t *data, int width, int height)
 {
     int initialWidth = width;
-    int numMipmaps = std::log2(width);
+    int numMipmaps = (int)std::log2(width);
     std::vector<std::vector<uint8_t>> mipmaps(numMipmaps);
     mipmaps[0] = std::vector<uint8_t>(data, data + width * width);
     for(int i=1; i<numMipmaps; i++)
@@ -136,7 +136,7 @@ void DispMapping::RenderGUI() {
         lightDirection = localLightDirection;
     }
 
-    ImGui::SliderFloat("Strength", &strength, 0, 0.2);
+    ImGui::SliderFloat("Strength", &strength, 0, 0.2f);
         
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;

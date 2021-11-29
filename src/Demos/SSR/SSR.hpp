@@ -54,7 +54,7 @@ private:
     GLint blurComputeShader;
     GLuint blurTexture;
 
-    int blurCount = 1;
+    int blurCount = 6;
     float bias = 2.0f;
 
 };

@@ -74,7 +74,7 @@ void ShellFur::Load() {
 
     MeshShader = GL_Shader("shaders/ShellFur/MeshShader.vert", "", "shaders/ShellFur/MeshShader.frag");
     
-    Mesh = MeshFromFile("resources/models/suzanne/Suzanne_lp.obj", false, 0);
+    Mesh = MeshFromFile("resources/models/head/head_smooth.obj",false, 0);
     // Mesh = MeshFromFile("resources/models/suzanne/cube.obj", false, 0);
     Material = new GL_Material();
     Mesh->material = Material;

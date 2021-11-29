@@ -343,7 +343,7 @@ void SVT::LoadVisiblePages()
         {
 
             //Load page
-			int mipNumPages = std::exp2(numMipmaps-1- mipmap);
+			int mipNumPages = (int)std::exp2(numMipmaps-1- mipmap);
 
             int px = pageToAdd % mipNumPages;
             int py = pageToAdd / mipNumPages;

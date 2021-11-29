@@ -61,7 +61,7 @@ private:
 
     int kernelSize = 64;
     float strength = 3;
-    float radius = 0.615;
+    float radius = 0.615f;
     float indirectRadiance = 10.0f;
     bool renderSSAO=true;
     bool ssaoEnabled=true;

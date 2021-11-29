@@ -34,6 +34,8 @@
 #include "Demos/DispMapping/DispMapping.hpp"
 #include "Demos/SVT/SVT.hpp"
 #include "Demos/SSDO/SSDO.hpp"
+#include "Demos/KuwaharaFilter/KuwaharaFilter.hpp"
+#include "Demos/SSSS/SSSS.hpp"
 
 
 
@@ -180,6 +182,18 @@ struct DemoManager {
             break;
         case 22:
             demo = new SSDO;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 23:
+            demo = new KuwaharaFilter;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 24:
+            demo = new SSSS;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -474,6 +488,10 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(22);
             }
+            if(ImGui::Button("Screen Space Subsurface Scattering", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(24);
+            }
 
             ImGui::Text("WIP"); 
             if(ImGui::Button("Boids", ImVec2(100, 20))) {
@@ -487,6 +505,10 @@ private:
             if(ImGui::Button("Displacement mapping", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(20);
+            }
+            if(ImGui::Button("Kuwahara Filter", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(23);
             }
             demoManager.RenderGUI();
 
