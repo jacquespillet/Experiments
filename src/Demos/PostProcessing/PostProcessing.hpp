@@ -11,6 +11,7 @@ struct PostProcess
     PostProcess(std::string shaderFileName);
     virtual void Process(GLuint textureIn, GLuint textureOut, int width, int height);
     virtual void SetUniforms();
+    virtual void RenderGui();
     std::string shaderFileName;
     GLint shader;
 };
@@ -26,6 +27,29 @@ struct GrayScalePostProcess : public PostProcess
 {
     GrayScalePostProcess();
     void SetUniforms() override;
+    void RenderGui() override;
+    float saturation = 0.0f;
+};
+
+struct ContrastBrightnessPostProcess : public PostProcess
+{
+    ContrastBrightnessPostProcess();
+    void SetUniforms() override;
+    void RenderGui() override;
+    float contrastIntensity=1;
+    float brightnessIntensity=1;
+    glm::vec3 contrast = glm::vec3(1.0f);
+    glm::vec3 brightness = glm::vec3(0.0f);
+};
+
+struct ChromaticAberationPostProcess : public PostProcess
+{
+    ChromaticAberationPostProcess();
+    void SetUniforms() override;
+    void RenderGui() override;
+    glm::vec3 offsets = glm::vec3(0,0,0);
+    glm::vec2 direction = glm::vec2(1,1);
+    bool aroundMouse=false;
 };
 
 class PostProcessing : public Demo {

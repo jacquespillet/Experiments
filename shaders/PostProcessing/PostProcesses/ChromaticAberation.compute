@@ -1,0 +1,35 @@
+//inputs
+#version 440
+//output
+layout ( binding = 0 , rgba16f ) uniform image2D textureIn;
+layout ( binding = 1 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+uniform vec3 offsets;
+uniform vec2 direction;
+
+uniform int aroundMouse;
+uniform ivec2 mousePos;
+
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    
+    vec3 finalColor;
+    if(aroundMouse==0)
+    {
+        finalColor.r  = imageLoad(textureIn, pixelCoord + ivec2(direction * vec2(offsets.r))).r;
+        finalColor.g  = imageLoad(textureIn, pixelCoord + ivec2(direction * vec2(offsets.g))).g;
+        finalColor.b = imageLoad(textureIn, pixelCoord + ivec2(direction * vec2(offsets.b ))).b;
+    }
+    else
+    {
+        vec2 mouseDirection = normalize(vec2(mousePos) - vec2(pixelCoord));
+        finalColor.r  = imageLoad(textureIn, pixelCoord + ivec2(mouseDirection * ivec2(offsets.r))).r;
+        finalColor.g  = imageLoad(textureIn, pixelCoord + ivec2(mouseDirection * ivec2(offsets.g))).g;
+        finalColor.b = imageLoad(textureIn, pixelCoord + ivec2(mouseDirection * ivec2(offsets.b ))).b;
+    }
+
+    imageStore ( textureOut , pixelCoord , vec4(finalColor, 1));
+}

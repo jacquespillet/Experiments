@@ -20,6 +20,12 @@ void PostProcess::SetUniforms()
     
 }
 
+void PostProcess::RenderGui()
+{
+
+}
+
+
 void PostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int height)
 {
 	glUseProgram(shader);
@@ -83,14 +89,73 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
     return (postProcesses.size() % 2 == 0) ? textureIn : textureOut;
 }
 
+//------------------------------------------------------------------------
 GrayScalePostProcess::GrayScalePostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/GrayScale.compute")
 {}
 
 void GrayScalePostProcess::SetUniforms()
 {
-    
+    glUniform1f(glGetUniformLocation(shader, "saturation"), saturation);
 }
 
+void GrayScalePostProcess::RenderGui()
+{
+    ImGui::Text("Gray Scale");
+    ImGui::SliderFloat("Saturation", &saturation, 0, 1);
+}
+
+//------------------------------------------------------------------------
+ContrastBrightnessPostProcess::ContrastBrightnessPostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/ContrastBrightness.compute")
+{}
+
+void ContrastBrightnessPostProcess::SetUniforms()
+{
+    glUniform3fv(glGetUniformLocation(shader, "contrast"), 1, glm::value_ptr(contrast));
+    glUniform3fv(glGetUniformLocation(shader, "brightness"), 1, glm::value_ptr(brightness));
+    glUniform1f(glGetUniformLocation(shader, "brightnessIntensity"), brightnessIntensity);
+    glUniform1f(glGetUniformLocation(shader, "contrastIntensity"), contrastIntensity);
+}
+
+void ContrastBrightnessPostProcess::RenderGui()
+{
+    ImGui::Text("Contrast Brightness");
+    ImGui::DragFloat("contrast intensity", &contrastIntensity, 0.1f, 0);
+    ImGui::ColorEdit3("contrast", glm::value_ptr(contrast));
+    ImGui::DragFloat("brightness intensity", &brightnessIntensity, 0.1f, 0);
+    ImGui::ColorEdit3("brightness", glm::value_ptr(brightness));
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+ChromaticAberationPostProcess::ChromaticAberationPostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/ChromaticAberation.compute")
+{}
+
+void ChromaticAberationPostProcess::SetUniforms()
+{
+    glUniform3fv(glGetUniformLocation(shader, "offsets"), 1, glm::value_ptr(offsets));
+
+    glm::vec2 normalizedDirection = glm::normalize(direction);
+    glUniform2fv(glGetUniformLocation(shader, "direction"), 1, glm::value_ptr(normalizedDirection));
+    
+    glUniform1i(glGetUniformLocation(shader, "aroundMouse"), (bool)aroundMouse);
+    
+    ImGuiIO &io = ImGui::GetIO();
+
+    glUniform2i(glGetUniformLocation(shader, "mousePos"), (int)io.MousePos.x, (int)io.MousePos.y);
+}
+
+void ChromaticAberationPostProcess::RenderGui()
+{
+    ImGui::Text("Chromatic Aberation");
+    //ImGui::SliderFloat("yo", &saturation, 0, 1);
+    ImGui::DragFloat3("Offsets", glm::value_ptr(offsets), 1, -20, 20);
+    ImGui::DragFloat3("Direction", glm::value_ptr(direction ), 0.01f, -1, 1);
+
+    ImGui::Checkbox("Around Mouse", &aroundMouse);
+}
+
+//------------------------------------------------------------------------
 
 PostProcessing::PostProcessing() {
 }
@@ -110,6 +175,8 @@ void PostProcessing::Load() {
     InitGeometryBuffer();
 
     postProcessStack.postProcesses.push_back(new GrayScalePostProcess());
+    postProcessStack.postProcesses.push_back(new ContrastBrightnessPostProcess());
+    postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
     
     //Color
     glGenTextures(1, (GLuint*)&postProcessTexture);
@@ -241,8 +308,14 @@ void PostProcessing::RenderGUI() {
         lightDirection = localLightDirection;
     }
 
-    ImGui::Checkbox("Normal Texture", &normalTextureSet);
-    ImGui::Checkbox("specular Texture", &specularTextureSet);
+	ImGui::Separator();
+
+    ImGui::Text("Post Processes");
+    for(int i=0; i< postProcessStack.postProcesses.size(); i++)
+    {
+        postProcessStack.postProcesses[i]->RenderGui();
+        ImGui::Separator();
+    }
         
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
