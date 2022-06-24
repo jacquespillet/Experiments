@@ -8,11 +8,12 @@
 
 struct PostProcess
 {
-    PostProcess(std::string shaderFileName);
+    PostProcess(std::string name, std::string shaderFileName);
     virtual void Process(GLuint textureIn, GLuint textureOut, int width, int height);
     virtual void SetUniforms();
     virtual void RenderGui();
     std::string shaderFileName;
+    std::string name;
     GLint shader;
 };
 
@@ -50,6 +51,13 @@ struct ChromaticAberationPostProcess : public PostProcess
     glm::vec3 offsets = glm::vec3(0,0,0);
     glm::vec2 direction = glm::vec2(1,1);
     bool aroundMouse=false;
+};
+
+struct DepthOfFieldPostProcess : public PostProcess
+{
+    DepthOfFieldPostProcess();
+    void SetUniforms() override;
+    void RenderGui() override;
 };
 
 class PostProcessing : public Demo {

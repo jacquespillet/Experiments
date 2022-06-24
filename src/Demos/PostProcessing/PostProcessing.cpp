@@ -10,7 +10,7 @@
 
 #include "imgui.h"
 
-PostProcess::PostProcess(std::string shaderFileName) : shaderFileName(shaderFileName) 
+PostProcess::PostProcess(std::string name, std::string shaderFileName) :name(name), shaderFileName(shaderFileName) 
 {
     CreateComputeShader(shaderFileName, &shader);
 }
@@ -90,7 +90,7 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
 }
 
 //------------------------------------------------------------------------
-GrayScalePostProcess::GrayScalePostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/GrayScale.compute")
+GrayScalePostProcess::GrayScalePostProcess() : PostProcess("GrayScale", "shaders/PostProcessing/PostProcesses/GrayScale.compute")
 {}
 
 void GrayScalePostProcess::SetUniforms()
@@ -100,12 +100,11 @@ void GrayScalePostProcess::SetUniforms()
 
 void GrayScalePostProcess::RenderGui()
 {
-    ImGui::Text("Gray Scale");
     ImGui::SliderFloat("Saturation", &saturation, 0, 1);
 }
 
 //------------------------------------------------------------------------
-ContrastBrightnessPostProcess::ContrastBrightnessPostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/ContrastBrightness.compute")
+ContrastBrightnessPostProcess::ContrastBrightnessPostProcess() : PostProcess("ContrastBrightness", "shaders/PostProcessing/PostProcesses/ContrastBrightness.compute")
 {}
 
 void ContrastBrightnessPostProcess::SetUniforms()
@@ -118,7 +117,6 @@ void ContrastBrightnessPostProcess::SetUniforms()
 
 void ContrastBrightnessPostProcess::RenderGui()
 {
-    ImGui::Text("Contrast Brightness");
     ImGui::DragFloat("contrast intensity", &contrastIntensity, 0.1f, 0);
     ImGui::ColorEdit3("contrast", glm::value_ptr(contrast));
     ImGui::DragFloat("brightness intensity", &brightnessIntensity, 0.1f, 0);
@@ -128,7 +126,7 @@ void ContrastBrightnessPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-ChromaticAberationPostProcess::ChromaticAberationPostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/ChromaticAberation.compute")
+ChromaticAberationPostProcess::ChromaticAberationPostProcess() : PostProcess("Chromatic Aberation", "shaders/PostProcessing/PostProcesses/ChromaticAberation.compute")
 {}
 
 void ChromaticAberationPostProcess::SetUniforms()
@@ -147,12 +145,25 @@ void ChromaticAberationPostProcess::SetUniforms()
 
 void ChromaticAberationPostProcess::RenderGui()
 {
-    ImGui::Text("Chromatic Aberation");
     //ImGui::SliderFloat("yo", &saturation, 0, 1);
     ImGui::DragFloat3("Offsets", glm::value_ptr(offsets), 1, -20, 20);
     ImGui::DragFloat3("Direction", glm::value_ptr(direction ), 0.01f, -1, 1);
 
     ImGui::Checkbox("Around Mouse", &aroundMouse);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+DepthOfFieldPostProcess::DepthOfFieldPostProcess() : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute")
+{}
+
+void DepthOfFieldPostProcess::SetUniforms()
+{
+}
+
+void DepthOfFieldPostProcess::RenderGui()
+{
 }
 
 //------------------------------------------------------------------------
@@ -311,11 +322,42 @@ void PostProcessing::RenderGUI() {
 	ImGui::Separator();
 
     ImGui::Text("Post Processes");
-    for(int i=0; i< postProcessStack.postProcesses.size(); i++)
+    // for(int i=0; i< postProcessStack.postProcesses.size(); i++)
+    // {
+    //     postProcessStack.postProcesses[i]->RenderGui();
+    //     ImGui::Separator();
+    // }
+
+    static PostProcess *selectedPostProcess=nullptr;
+    for (int n = 0; n < postProcessStack.postProcesses.size(); n++)
     {
-        postProcessStack.postProcesses[i]->RenderGui();
-        ImGui::Separator();
+        PostProcess *item = postProcessStack.postProcesses[n];
+        
+        bool isSelected=false;
+        if(ImGui::Selectable(item->name.c_str(), &isSelected))
+        {
+            selectedPostProcess = item;
+        }
+
+        if (ImGui::IsItemActive() && !ImGui::IsItemHovered())
+        {
+            int n_next = n + (ImGui::GetMouseDragDelta(0).y < 0.f ? -1 : 1);
+            if (n_next >= 0 && n_next < postProcessStack.postProcesses.size())
+            {
+                postProcessStack.postProcesses[n] = postProcessStack.postProcesses[n_next];
+                postProcessStack.postProcesses[n_next] = item;
+                ImGui::ResetMouseDragDelta();
+            }
+        }
+
+        if (isSelected)
+            ImGui::SetItemDefaultFocus();    
+    }    
+    if(selectedPostProcess != nullptr)
+    {
+        selectedPostProcess->RenderGui();
     }
+    
         
     if(ImGui::IsAnyItemActive()) cam.locked=true;
     else cam.locked=false;
