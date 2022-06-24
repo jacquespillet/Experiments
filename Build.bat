@@ -4,13 +4,13 @@ REM IMGUI
 set dearimguiPlot= ..\ext\imgui_plot\
 set dearimguiPlotInclude= %dearimguiPlot%\include
 REM set dearimguiSrc=%dearimgui%imgui_impl_opengl3.cpp %dearimgui%imgui_impl_glfw.cpp %dearimgui%imgui.cpp %dearimgui%imgui_demo.cpp %dearimgui%imgui_draw.cpp %dearimgui%imgui_widgets.cpp
-set dearimguiObj=%dearimgui%\build\imgui_impl_opengl3.obj %dearimgui%\build\imgui_impl_glfw.obj %dearimgui%\build\imgui.obj %dearimgui%\build\imgui_demo.obj %dearimgui%\build\imgui_draw.obj %dearimgui%\build\imgui_widgets.obj
+@REM set dearimguiObj=%dearimgui%\build\imgui_impl_opengl3.obj %dearimgui%\build\imgui_impl_glfw.obj %dearimgui%\build\imgui.obj %dearimgui%\build\imgui_demo.obj %dearimgui%\build\imgui_draw.obj %dearimgui%\build\imgui_widgets.obj
 REM --------------------
 
 REM IMGUI
 set dearimgui= ..\ext\dearimgui\
 set dearimguiSrc=%dearimgui%imgui_impl_opengl3.cpp %dearimgui%imgui_impl_glfw.cpp %dearimgui%imgui.cpp %dearimgui%imgui_demo.cpp %dearimgui%imgui_draw.cpp %dearimgui%imgui_widgets.cpp
-set dearimguiObj=%dearimgui%\build\imgui_impl_opengl3.obj %dearimgui%\build\imgui_impl_glfw.obj %dearimgui%\build\imgui.obj %dearimgui%\build\imgui_demo.obj %dearimgui%\build\imgui_draw.obj %dearimgui%\build\imgui_widgets.obj
+@REM set dearimguiObj=%dearimgui%\build\imgui_impl_opengl3.obj %dearimgui%\build\imgui_impl_glfw.obj %dearimgui%\build\imgui.obj %dearimgui%\build\imgui_demo.obj %dearimgui%\build\imgui_draw.obj %dearimgui%\build\imgui_widgets.obj
 REM --------------------
 
 REM GLEW
@@ -42,11 +42,13 @@ set demoFiles= %demoFiles% ../src/Demos/NBodies/NBodies.cpp ../src/Demos/FFT/FFT
 set demoFiles= %demoFiles% ../src/Demos/DeferredDecals/DeferredDecals.cpp ../src/Demos/PathTracer/PathTracer.cpp  ../src/Demos/Boids/Boids.cpp  ../src/Demos/TiledRendering/TiledRendering.cpp 
 set demoFiles= %demoFiles% ../src/Demos/SSAO/SSAO.cpp ../src/Demos/SSR/SSR.cpp  ../src/Demos/OIT/OIT.cpp  ../src/Demos/CSM/CSM.cpp  ../src/Demos/ShellFur/ShellFur.cpp   ../src/Demos/DispMapping/DispMapping.cpp 
 set demoFiles= %demoFiles% ../src/Demos/SVT/SVT.cpp ../src/Demos/SSDO/SSDO.cpp ../src/Demos/KuwaharaFilter/KuwaharaFilter.cpp  ../src/Demos/SSSS/SSSS.cpp ../src/Demos/PostProcessing/PostProcessing.cpp
+set demoFiles= %demoFiles% %dearimguiSrc%
+
 REM --------------------
 
 
 set compilerFlags= /DEBUG -MP -MT -nologo -EHa- -Od -Oi -W4 -Z7 -EHsc -wd4201 -wd4310 -wd4100  -wd4996 /I ../src /I ..\ext\stb /I %dearimgui% /I %glfwInclude%  /I %glewIncludes% /I %dearimguiPlotInclude% /I %glmInclude% /I %assimpIncludes%
-set linkerFlags=  -opt:ref Gdi32.lib Shell32.lib opengl32.lib %dearimguiObj% %glfwLib%  %glewLib% %assimpLib%
+set linkerFlags=  -opt:ref Gdi32.lib Shell32.lib opengl32.lib %glfwLib%  %glewLib% %assimpLib%
 
 IF NOT EXIST .\build mkdir .\build
 pushd .\build

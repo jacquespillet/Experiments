@@ -11,15 +11,11 @@ in vec2 fragUv;
 uniform sampler2D colorTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D positionTexture;
+uniform sampler2D postProcessedTexture;
 
 void main()
 {
-    vec4 sampleDiffuse = texture(colorTexture, fragUv);
-    // vec3 ambientColor =vec3(0.1) * diffuseColor;
-    vec3 finalColor= sampleDiffuse.xyz;
-    // vec3 finalColor= ambientColor;
-    float gamma = 2.2;
-    finalColor = pow(finalColor, vec3(1.0/gamma));
-    outputColor = vec4(finalColor, 1.0f);
+    vec4 sampleDiffuse = texture(postProcessedTexture, fragUv);
+    outputColor = vec4(sampleDiffuse.rgb, 1.0f);
 
 }

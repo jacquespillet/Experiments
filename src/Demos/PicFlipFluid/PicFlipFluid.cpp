@@ -303,7 +303,6 @@ void PicFlipFluid::SetGridUniforms(GLint shader)
 	glUniform3fv(glGetUniformLocation(shader, "boundsMin"), 1, glm::value_ptr(boundsMin));
 	glUniform3fv(glGetUniformLocation(shader, "boundsMax"), 1, glm::value_ptr(boundsMax));
 	glUniform3iv(glGetUniformLocation(shader, "gridDim"), 1, glm::value_ptr(gridDimensions));
-
 }
 
 //Set initial values in all cells of the grid

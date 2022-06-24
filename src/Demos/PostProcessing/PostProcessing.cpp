@@ -10,6 +10,88 @@
 
 #include "imgui.h"
 
+PostProcess::PostProcess(std::string shaderFileName) : shaderFileName(shaderFileName) 
+{
+    CreateComputeShader(shaderFileName, &shader);
+}
+
+void PostProcess::SetUniforms()
+{
+    
+}
+
+void PostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int height)
+{
+	glUseProgram(shader);
+	SetUniforms();
+
+	glUniform1i(glGetUniformLocation(shader, "textureIn"), 0); //program must be active
+    glBindImageTexture(0, textureIn, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+	
+    glUniform1i(glGetUniformLocation(shader, "textureOut"), 1); //program must be active
+    glBindImageTexture(1, textureOut, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+     
+    glDispatchCompute(width / 32, height / 32, 1);
+	glUseProgram(0);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+}
+
+
+// 1 : 
+//     read in, write out, return out
+// 2 : 
+//     read in, write out
+//     read out, write in
+//     return in
+// 3 : 
+//     read in, write out
+//     read out, write in
+//     read in, write out
+//     return out
+// 4 : 
+//     read in, write out
+//     read out, write in
+//     read in, write out
+//     read out, write in
+//     return in
+
+
+GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width, int height)
+{
+
+    for(int i=0; i<postProcesses.size(); i++)
+    {
+        if(i==0)
+        {
+            postProcesses[i]->Process(
+                                    textureIn,
+                                    textureOut,
+                                    width, 
+                                    height);
+        }
+        else
+        {
+            bool pairPass = i % 2 == 0;
+            postProcesses[i]->Process(
+                                    pairPass ? textureIn : textureOut, 
+                                    pairPass ? textureOut : textureIn, 
+                                    width, 
+                                    height);
+        }
+    }
+
+    return (postProcesses.size() % 2 == 0) ? textureIn : textureOut;
+}
+
+GrayScalePostProcess::GrayScalePostProcess() : PostProcess("shaders/PostProcessing/PostProcesses/GrayScale.compute")
+{}
+
+void GrayScalePostProcess::SetUniforms()
+{
+    
+}
+
+
 PostProcessing::PostProcessing() {
 }
 
@@ -26,6 +108,18 @@ void PostProcessing::Load() {
     cam = GL_Camera(glm::vec3(0, 10, 0));  
 
     InitGeometryBuffer();
+
+    postProcessStack.postProcesses.push_back(new GrayScalePostProcess());
+    
+    //Color
+    glGenTextures(1, (GLuint*)&postProcessTexture);
+    glBindTexture(GL_TEXTURE_2D, postProcessTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
 }
 
 void PostProcessing::InitGeometryBuffer()
@@ -52,7 +146,7 @@ void PostProcessing::InitGeometryBuffer()
     //Color
     glGenTextures(1, (GLuint*)&colorTexture);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -171,6 +265,8 @@ void PostProcessing::Render() {
         Meshes[i]->Render(cam, renderGBufferShader.programShaderObject);
     }      
 
+    GLuint outTexture = postProcessStack.Process(colorTexture, postProcessTexture, windowWidth, windowHeight);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(resolveGBufferShader.programShaderObject);
     
@@ -186,7 +282,11 @@ void PostProcessing::Render() {
     glBindTexture(GL_TEXTURE_2D, normalTexture);
     glUniform1i(glGetUniformLocation(resolveGBufferShader.programShaderObject, "normalTexture"), 2);
 
-    screenSpaceQuad.RenderShader(resolveGBufferShader.programShaderObject);    
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, outTexture);
+    glUniform1i(glGetUniformLocation(resolveGBufferShader.programShaderObject, "postProcessedTexture"), 3);
+
+    screenSpaceQuad.RenderShader(resolveGBufferShader.programShaderObject);
 }
 
 void PostProcessing::Unload() {

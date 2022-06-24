@@ -6,6 +6,28 @@
 #include "GL_Helpers/GL_Mesh.hpp"
 #include "GL_Helpers/GL_Camera.hpp"
 
+struct PostProcess
+{
+    PostProcess(std::string shaderFileName);
+    virtual void Process(GLuint textureIn, GLuint textureOut, int width, int height);
+    virtual void SetUniforms();
+    std::string shaderFileName;
+    GLint shader;
+};
+
+struct PostProcessStack
+{
+    std::vector<PostProcess*> postProcesses;
+    GLuint Process(GLuint textureIn, GLuint textureOut, int width, int height);
+};
+
+
+struct GrayScalePostProcess : public PostProcess
+{
+    GrayScalePostProcess();
+    void SetUniforms() override;
+};
+
 class PostProcessing : public Demo {
 public : 
     PostProcessing();
@@ -40,8 +62,11 @@ private:
     GL_Shader renderGBufferShader;
     GL_Shader resolveGBufferShader;
     GL_Mesh screenSpaceQuad;
+    GLuint postProcessTexture;
 
     glm::vec3 lightDirection;
+
+    PostProcessStack postProcessStack;
 
     bool lightDirectionChanged=false;
 
