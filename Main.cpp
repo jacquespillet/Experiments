@@ -36,6 +36,7 @@
 #include "Demos/SSDO/SSDO.hpp"
 #include "Demos/KuwaharaFilter/KuwaharaFilter.hpp"
 #include "Demos/SSSS/SSSS.hpp"
+#include "Demos/PostProcessing/PostProcessing.hpp"
 
 
 
@@ -194,6 +195,12 @@ struct DemoManager {
             break;
         case 24:
             demo = new SSSS;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 25:
+            demo = new PostProcessing;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -491,6 +498,10 @@ private:
             if(ImGui::Button("Screen Space Subsurface Scattering", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(24);
+            }
+            if(ImGui::Button("Post Processing", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(25);
             }
 
             ImGui::Text("WIP"); 
