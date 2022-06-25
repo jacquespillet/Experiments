@@ -10,6 +10,7 @@ uniform mat4 modelMatrix;
 uniform mat4 modelViewProjectionMatrix;
 uniform mat4 modelViewMatrix;
 
+out vec3 fragViewPos;
 out vec3 fragPos;
 out vec3 fragNormal;
 out vec3 fragTangent;
@@ -28,6 +29,7 @@ void main()
 
 	//World position
 	fragPos = (modelMatrix * vec4(position,1)).xyz;
+	fragViewPos = (modelViewMatrix * vec4(position,1)).xyz;
 
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
 	//tangent space vectors

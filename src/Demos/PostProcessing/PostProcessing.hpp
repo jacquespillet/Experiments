@@ -55,9 +55,29 @@ struct ChromaticAberationPostProcess : public PostProcess
 
 struct DepthOfFieldPostProcess : public PostProcess
 {
-    DepthOfFieldPostProcess();
+    DepthOfFieldPostProcess(GLuint positionsTexture,int width, int height);
     void SetUniforms() override;
     void RenderGui() override;
+    void Process(GLuint textureIn, GLuint textureOut, int width, int height) override;
+
+    void Blit(GLuint source, GLuint target, int targetWidth, int targetHeight);
+
+    float focusRange=35.0f;
+    float focusDistance = 5.0f;
+    float bokehSize = 4 ;
+
+    GLuint positionTexture;
+
+    GLuint bokehTextureIn;
+    GLuint bokehTextureOut;
+
+    GLint blitShader;
+    GLint cocShader;
+    GLint prefilterCocShader;
+    GLint combineShader;
+    
+    GLuint cocTexture;
+    GLuint prefilteredCocTexture;
 };
 
 class PostProcessing : public Demo {

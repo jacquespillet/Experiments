@@ -1,0 +1,58 @@
+//inputs
+#version 440
+//output
+layout ( binding = 0 , rgba16f ) uniform image2D textureIn;
+layout ( binding = 1 , r16f ) uniform image2D prefilteredCocTexture;
+layout ( binding = 2 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+const int kernelSampleCount = 16;
+const vec2 kernel[kernelSampleCount] = {
+    vec2(0, 0),
+    vec2(0.54545456, 0),
+    vec2(0.16855472, 0.5187581),
+    vec2(-0.44128203, 0.3206101),
+    vec2(-0.44128197, -0.3206102),
+    vec2(0.1685548, -0.5187581),
+    vec2(1, 0),
+    vec2(0.809017, 0.58778524),
+    vec2(0.30901697, 0.95105654),
+    vec2(-0.30901703, 0.9510565),
+    vec2(-0.80901706, 0.5877852),
+    vec2(-1, 0),
+    vec2(-0.80901694, -0.58778536),
+    vec2(-0.30901664, -0.9510566),
+    vec2(0.30901712, -0.9510565),
+    vec2(0.80901694, -0.5877853),
+};
+
+uniform float bokehSize;
+
+
+
+float Weight (float coc, float radius) {
+    return clamp((coc - radius + 2) / 2, 0, 1);
+}
+
+
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    
+    vec3 color = vec3(0);
+    float weight=0;
+    for (int i = 0; i < kernelSampleCount; i++) {
+        vec2 o = kernel[i] * bokehSize;
+        float radius = length(o);
+
+        float cocValue = imageLoad(prefilteredCocTexture, pixelCoord + ivec2(o)).r;
+        
+        float sampleWeight = Weight(abs(cocValue), radius);
+        color += imageLoad(textureIn, pixelCoord + ivec2(o)).rgb * sampleWeight;
+        weight += sampleWeight;
+    }
+    color *= 1.0 / weight;
+
+    imageStore ( textureOut , pixelCoord , vec4(color.rgb, 1));
+}

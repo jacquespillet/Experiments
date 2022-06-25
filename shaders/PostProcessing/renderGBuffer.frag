@@ -8,6 +8,8 @@ layout(location = 0) out vec4 outputPosition;
 layout (location = 1) out vec4 outputNormal;
 layout (location = 2) out vec4 outputColor;
 
+
+in vec3 fragViewPos;
 in vec3 fragPos;
 in vec3 fragNormal;
 in vec3 fragTangent;
@@ -160,7 +162,9 @@ void main()
     float visibility=1.0f;
     finalColor *= visibility;
 
-    outputPosition = vec4(fragPos, 0);
+    float linearDepth = -fragViewPos.z;
+
+    outputPosition = vec4(fragPos, linearDepth);
     outputNormal = vec4(N, 0);
     outputColor = vec4(finalColor,1);
 }

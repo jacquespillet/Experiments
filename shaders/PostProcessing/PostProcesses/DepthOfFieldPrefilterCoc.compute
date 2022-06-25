@@ -1,0 +1,24 @@
+//inputs
+#version 440
+//output
+layout ( binding = 0 , r16f ) uniform image2D cocTexture;
+layout ( binding = 1 , r16f ) uniform image2D prefilterdCoc;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    ivec2 samplePixelCoord = pixelCoord * 2;
+
+    float coc0 = imageLoad(cocTexture, samplePixelCoord + ivec2(1,1)).r;
+    float coc1 = imageLoad(cocTexture, samplePixelCoord + ivec2(1,1)).r;
+    float coc2 = imageLoad(cocTexture, samplePixelCoord + ivec2(1,1)).r;
+    float coc3 = imageLoad(cocTexture, samplePixelCoord + ivec2(1,1)).r;
+    
+    float cocMin = min(min(min(coc0, coc1), coc2), coc3);
+    float cocMax = max(max(max(coc0, coc1), coc2), coc3);
+    float coc = cocMax >= -cocMin ? cocMax : cocMin;
+
+    imageStore ( prefilterdCoc , pixelCoord , vec4(coc));
+}

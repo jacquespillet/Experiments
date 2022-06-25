@@ -1,0 +1,28 @@
+//inputs
+#version 440
+//output
+uniform sampler2D bokehTexture;
+uniform sampler2D cocTexture;
+
+layout ( binding = 1 , rgba16f ) uniform image2D textureIn;
+layout ( binding = 2 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+
+
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    vec2 uv = vec2(pixelCoord) / vec2(imageSize(textureIn));
+
+    vec4 sourceColor = imageLoad(textureIn, pixelCoord);
+
+    float coc = texture(cocTexture, uv).r;
+    vec4 dof = texture(bokehTexture, uv);
+
+    float dofStrength = smoothstep(0.1f, 1.0f, abs(coc));
+    vec3 color = mix(sourceColor.rgb, dof.rgb, dofStrength);
+
+    imageStore ( textureOut , pixelCoord , vec4(color.rgb, 1));
+}

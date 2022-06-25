@@ -155,8 +155,46 @@ void ChromaticAberationPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-DepthOfFieldPostProcess::DepthOfFieldPostProcess() : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute")
-{}
+DepthOfFieldPostProcess::DepthOfFieldPostProcess(GLuint positionTexture, int width, int height) : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute"), positionTexture(positionTexture)
+{
+    glGenTextures(1, (GLuint*)&cocTexture);
+    glBindTexture(GL_TEXTURE_2D, cocTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenTextures(1, (GLuint*)&prefilteredCocTexture);
+    glBindTexture(GL_TEXTURE_2D, prefilteredCocTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, width/2, height/2, 0, GL_RED, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+ 
+    glGenTextures(1, (GLuint*)&bokehTextureIn);
+    glBindTexture(GL_TEXTURE_2D, bokehTextureIn);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width/2, height/2, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+ 
+    glGenTextures(1, (GLuint*)&bokehTextureOut);
+    glBindTexture(GL_TEXTURE_2D, bokehTextureOut);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width/2, height/2, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    
+    CreateComputeShader("shaders/PostProcessing/PostProcesses/DepthOfFieldCoc.compute", &cocShader);
+    CreateComputeShader("shaders/PostProcessing/PostProcesses/Blit.compute", &blitShader);
+    CreateComputeShader("shaders/PostProcessing/PostProcesses/DepthOfFieldPrefilterCoc.compute", &prefilterCocShader);
+    CreateComputeShader("shaders/PostProcessing/PostProcesses/DepthOfFieldCombine.compute", &combineShader);
+}
 
 void DepthOfFieldPostProcess::SetUniforms()
 {
@@ -164,6 +202,121 @@ void DepthOfFieldPostProcess::SetUniforms()
 
 void DepthOfFieldPostProcess::RenderGui()
 {
+    ImGui::DragFloat("FocusRange", &focusRange, 0.1f, 0, 50);
+    ImGui::DragFloat("FocusDistance", &focusDistance, 0.1f, 0.01f, 50);
+    ImGui::DragFloat("BokehSize", &bokehSize, 0.1f, 0, 32);
+}
+
+void DepthOfFieldPostProcess::Blit(GLuint source, GLuint target, int targetWidth, int targetHeight)
+{
+    //Coc pass
+	{
+        glUseProgram(blitShader);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, source);
+        glUniform1i(glGetUniformLocation(blitShader, "source"), 0); //program must be active
+        
+        glUniform1i(glGetUniformLocation(blitShader, "target"), 1); //program must be active
+        glBindImageTexture(1, target, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F); 
+        
+        glDispatchCompute((targetWidth / 32) + 1, (targetHeight / 32) + 1, 1);
+        glUseProgram(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }    
+}
+
+void DepthOfFieldPostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int height)
+{
+    //Coc pass
+	{
+        glUseProgram(cocShader);
+
+        glUniform1i(glGetUniformLocation(cocShader, "positionTexture"), 0); //program must be active
+        glBindImageTexture(0, positionTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+        
+        glUniform1i(glGetUniformLocation(cocShader, "textureOut"), 1); //program must be active
+        glBindImageTexture(1, cocTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R16F); 
+        
+        glUniform1f(glGetUniformLocation(cocShader, "focusRange"), focusRange); //program must be active
+        glUniform1f(glGetUniformLocation(cocShader, "focusDistance"), focusDistance); //program must be active
+        glUniform1f(glGetUniformLocation(cocShader, "bokehSize"), bokehSize);
+
+        glDispatchCompute(width / 32, height / 32, 1);
+        glUseProgram(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+    //Prefilter coc
+	{
+        glUseProgram(prefilterCocShader);
+
+        glUniform1i(glGetUniformLocation(prefilterCocShader, "cocTexture"), 0); //program must be active
+        glBindImageTexture(0, cocTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R16F);
+        
+        glUniform1i(glGetUniformLocation(prefilterCocShader, "prefilteredCoc"), 1); //program must be active
+        glBindImageTexture(1, prefilteredCocTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R16F); 
+        
+        glDispatchCompute((width/2) / 32 + 1, (height/2) / 32 + 1, 1);
+        glUseProgram(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+    //Blit textureIn into bokehTexture
+    Blit(textureIn, bokehTextureIn, width/2, height/2);
+
+    //Compute shader that takes the first texture as a sampler
+	{
+        glUseProgram(shader);
+
+        glUniform1i(glGetUniformLocation(shader, "textureIn"), 0); //program must be active
+        glBindImageTexture(0, bokehTextureIn, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+        
+        glUniform1i(glGetUniformLocation(shader, "prefilteredCocTexture"), 1); //program must be active
+        glBindImageTexture(1, prefilteredCocTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R16F);
+        
+        glUniform1i(glGetUniformLocation(shader, "textureOut"), 2); //program must be active
+        glBindImageTexture(2, bokehTextureOut, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F); 
+        
+        glUniform1f(glGetUniformLocation(shader, "bokehSize"), bokehSize);
+
+        glDispatchCompute((width/2) / 32, (height/2) / 32, 1);
+        glUseProgram(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+	{
+        glUseProgram(combineShader);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bokehTextureOut);
+        glUniform1i(glGetUniformLocation(combineShader, "bokehTexture"), 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, prefilteredCocTexture);
+        glUniform1i(glGetUniformLocation(combineShader, "cocTexture"), 1);
+        
+        glUniform1i(glGetUniformLocation(combineShader, "textureIn"), 1); //program must be active
+        glBindImageTexture(1, textureIn, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+        
+        glUniform1i(glGetUniformLocation(combineShader, "textureOut"), 2); //program must be active
+        glBindImageTexture(2, textureOut, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F); 
+        
+        glDispatchCompute((width / 32) + 1, (height / 32) + 1, 1);
+        glUseProgram(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+    // Blit(bokehTextureOut, textureOut, width, height);
+    //Writes the output at half the size
+
+    //bokeh pass at half size
+
+    //blit bokeh pass in textureOut
+    //compute shader that will sample the low res texture, and with bilinear filtering it will blur it
+
+    //Bokeh pass
+
 }
 
 //------------------------------------------------------------------------
@@ -188,6 +341,7 @@ void PostProcessing::Load() {
     postProcessStack.postProcesses.push_back(new GrayScalePostProcess());
     postProcessStack.postProcesses.push_back(new ContrastBrightnessPostProcess());
     postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
+    postProcessStack.postProcesses.push_back(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight));
     
     //Color
     glGenTextures(1, (GLuint*)&postProcessTexture);
@@ -322,6 +476,7 @@ void PostProcessing::RenderGUI() {
 	ImGui::Separator();
 
     ImGui::Text("Post Processes");
+	ImGui::Separator();
     // for(int i=0; i< postProcessStack.postProcesses.size(); i++)
     // {
     //     postProcessStack.postProcesses[i]->RenderGui();
@@ -353,6 +508,9 @@ void PostProcessing::RenderGUI() {
         if (isSelected)
             ImGui::SetItemDefaultFocus();    
     }    
+
+	ImGui::Separator();
+    
     if(selectedPostProcess != nullptr)
     {
         selectedPostProcess->RenderGui();
