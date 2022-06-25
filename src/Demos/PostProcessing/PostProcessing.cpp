@@ -37,7 +37,7 @@ void PostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int he
     glUniform1i(glGetUniformLocation(shader, "textureOut"), 1); //program must be active
     glBindImageTexture(1, textureOut, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
      
-    glDispatchCompute(width / 32, height / 32, 1);
+    glDispatchCompute((width / 32) + 1, (height / 32) + 1, 1);
 	glUseProgram(0);
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
@@ -64,12 +64,18 @@ void PostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int he
 
 GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width, int height)
 {
-
+    std::vector<PostProcess*> activeProcesses;
+    activeProcesses.reserve(postProcesses.size());
     for(int i=0; i<postProcesses.size(); i++)
+    {
+        if(postProcesses[i]->active) activeProcesses.push_back(postProcesses[i]);
+    }
+
+    for(int i=0; i<activeProcesses.size(); i++)
     {
         if(i==0)
         {
-            postProcesses[i]->Process(
+            activeProcesses[i]->Process(
                                     textureIn,
                                     textureOut,
                                     width, 
@@ -78,7 +84,7 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
         else
         {
             bool pairPass = i % 2 == 0;
-            postProcesses[i]->Process(
+            activeProcesses[i]->Process(
                                     pairPass ? textureIn : textureOut, 
                                     pairPass ? textureOut : textureIn, 
                                     width, 
@@ -86,7 +92,7 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
         }
     }
 
-    return (postProcesses.size() % 2 == 0) ? textureIn : textureOut;
+    return (activeProcesses.size() % 2 == 0) ? textureIn : textureOut;
 }
 
 //------------------------------------------------------------------------
@@ -166,6 +172,23 @@ void PixelizePostProcess::SetUniforms()
 void PixelizePostProcess::RenderGui()
 {
     ImGui::SliderInt("Pixel Size", &pixelSize, 1, 32);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+ToneMappingPostProcess::ToneMappingPostProcess() : PostProcess("ToneMapping", "shaders/PostProcessing/PostProcesses/ToneMapping.compute")
+{}
+
+void ToneMappingPostProcess::SetUniforms()
+{
+    glUniform1f(glGetUniformLocation(shader, "exposure"), exposure);
+    glUniform1i(glGetUniformLocation(shader, "type"), type);
+}
+
+void ToneMappingPostProcess::RenderGui()
+{
+    ImGui::DragFloat("Exposure", &exposure,0.01f, 0.01f, 10.0f);
 }
 
 //------------------------------------------------------------------------
@@ -258,7 +281,7 @@ void DepthOfFieldPostProcess::Process(GLuint textureIn, GLuint textureOut, int w
         glUniform1f(glGetUniformLocation(cocShader, "focusDistance"), focusDistance); //program must be active
         glUniform1f(glGetUniformLocation(cocShader, "bokehSize"), bokehSize);
 
-        glDispatchCompute(width / 32, height / 32, 1);
+        glDispatchCompute((width / 32) + 1, (height / 32) + 1, 1);
         glUseProgram(0);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
@@ -296,7 +319,7 @@ void DepthOfFieldPostProcess::Process(GLuint textureIn, GLuint textureOut, int w
         
         glUniform1f(glGetUniformLocation(shader, "bokehSize"), bokehSize);
 
-        glDispatchCompute((width/2) / 32, (height/2) / 32, 1);
+        glDispatchCompute(((width/2) / 32) + 1, ((height/2) / 32) + 1, 1);
         glUseProgram(0);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
@@ -359,6 +382,7 @@ void PostProcessing::Load() {
     postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
     postProcessStack.postProcesses.push_back(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight));
     postProcessStack.postProcesses.push_back(new PixelizePostProcess());
+    postProcessStack.postProcesses.push_back(new ToneMappingPostProcess());
     
     //Color
     glGenTextures(1, (GLuint*)&postProcessTexture);
@@ -505,6 +529,10 @@ void PostProcessing::RenderGUI() {
     {
         PostProcess *item = postProcessStack.postProcesses[n];
         
+        ImGui::PushID(n);
+        ImGui::Checkbox("", &postProcessStack.postProcesses[n]->active);
+        ImGui::PopID();
+        ImGui::SameLine();
         bool isSelected=false;
         if(ImGui::Selectable(item->name.c_str(), &isSelected))
         {

@@ -15,6 +15,8 @@ struct PostProcess
     std::string shaderFileName;
     std::string name;
     GLint shader;
+
+    bool active=true;
 };
 
 struct PostProcessStack
@@ -59,6 +61,15 @@ struct PixelizePostProcess : public PostProcess
     void SetUniforms() override;
     void RenderGui() override;
     int pixelSize=5;
+};
+
+struct ToneMappingPostProcess : public PostProcess
+{
+    ToneMappingPostProcess();
+    void SetUniforms() override;
+    void RenderGui() override;
+    float exposure = 1;
+    int type;
 };
 
 struct DepthOfFieldPostProcess : public PostProcess

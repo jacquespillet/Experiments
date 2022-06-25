@@ -15,7 +15,9 @@ uniform sampler2D postProcessedTexture;
 
 void main()
 {
+    float gamma = 2.2;
     vec4 sampleDiffuse = texture(postProcessedTexture, fragUv);
+    sampleDiffuse.rgb = pow(sampleDiffuse.rgb, vec3(1.0 / gamma));
     outputColor = vec4(sampleDiffuse.rgb, 1.0f);
 
 }
