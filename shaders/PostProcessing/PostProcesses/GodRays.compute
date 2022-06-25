@@ -1,0 +1,41 @@
+//inputs
+#version 440
+//output
+uniform sampler2D textureIn;
+layout ( binding = 1 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+uniform vec3 lightViewPosition;
+
+uniform float density;
+uniform float weight;
+uniform float decay;
+uniform float exposure;
+uniform int numSamples;
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    vec2 uv = vec2(pixelCoord) / vec2(imageSize(textureOut));
+    
+    vec2 deltaUV = ( uv - lightViewPosition.xy );
+    deltaUV *= 1.0 / numSamples * density;
+
+    vec3 color = texture( textureIn, uv ).rgb;
+    float illuminationDecay = 1.0;
+    for( int i = 0; i < numSamples; ++i )
+    {
+            uv -= deltaUV;
+
+            vec3 sampleColor = texture( textureIn, uv ).rgb;
+
+            sampleColor *= illuminationDecay * weight;
+
+            color += sampleColor;
+
+            illuminationDecay *= decay;      
+
+    }
+ 
+    imageStore ( textureOut , pixelCoord , vec4(color,1.0f));
+}

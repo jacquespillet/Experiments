@@ -8,7 +8,7 @@
 
 struct PostProcess
 {
-    PostProcess(std::string name, std::string shaderFileName);
+    PostProcess(std::string name, std::string shaderFileName, bool enabled);
     virtual void Process(GLuint textureIn, GLuint textureOut, int width, int height);
     virtual void SetUniforms();
     virtual void RenderGui();
@@ -16,7 +16,7 @@ struct PostProcess
     std::string name;
     GLint shader;
 
-    bool active=true;
+    bool enabled=true;
 };
 
 struct PostProcessStack
@@ -28,7 +28,7 @@ struct PostProcessStack
 
 struct GrayScalePostProcess : public PostProcess
 {
-    GrayScalePostProcess();
+    GrayScalePostProcess(bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     float saturation = 0.0f;
@@ -36,7 +36,7 @@ struct GrayScalePostProcess : public PostProcess
 
 struct ContrastBrightnessPostProcess : public PostProcess
 {
-    ContrastBrightnessPostProcess();
+    ContrastBrightnessPostProcess(bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     float contrastIntensity=1;
@@ -47,7 +47,7 @@ struct ContrastBrightnessPostProcess : public PostProcess
 
 struct ChromaticAberationPostProcess : public PostProcess
 {
-    ChromaticAberationPostProcess();
+    ChromaticAberationPostProcess(bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     glm::vec3 offsets = glm::vec3(0,0,0);
@@ -57,15 +57,33 @@ struct ChromaticAberationPostProcess : public PostProcess
 
 struct PixelizePostProcess : public PostProcess
 {
-    PixelizePostProcess();
+    PixelizePostProcess(bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     int pixelSize=5;
 };
 
+struct GodRaysPostProcess : public PostProcess
+{
+    GodRaysPostProcess(glm::vec3 *lightPosition, glm::mat4 *viewMatrix, glm::mat4 *projectionMatrix, bool enabled=true);
+    void SetUniforms() override;
+    void RenderGui() override;
+    void Process(GLuint textureIn, GLuint textureOut, int width, int height) override;
+    
+    glm::vec3 *lightPosition;
+    glm::mat4 *viewMatrix;
+    glm::mat4 *projectionMatrix;
+
+    float density = 1.0f;
+    float weight=0.1f;
+
+    float decay = 0.99;
+    int numSamples = 64;
+};
+
 struct ToneMappingPostProcess : public PostProcess
 {
-    ToneMappingPostProcess();
+    ToneMappingPostProcess(bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     float exposure = 1;
@@ -74,7 +92,7 @@ struct ToneMappingPostProcess : public PostProcess
 
 struct DepthOfFieldPostProcess : public PostProcess
 {
-    DepthOfFieldPostProcess(GLuint positionsTexture,int width, int height);
+    DepthOfFieldPostProcess(GLuint positionsTexture,int width, int height,bool enabled=true);
     void SetUniforms() override;
     void RenderGui() override;
     void Process(GLuint textureIn, GLuint textureOut, int width, int height) override;
@@ -135,11 +153,10 @@ private:
     GL_Mesh screenSpaceQuad;
     GLuint postProcessTexture;
 
-    glm::vec3 lightDirection;
+    glm::vec3 lightPosition;
+    float lightIntensity;
 
     PostProcessStack postProcessStack;
-
-    bool lightDirectionChanged=false;
 
     bool specularTextureSet=false;
     bool normalTextureSet=false;

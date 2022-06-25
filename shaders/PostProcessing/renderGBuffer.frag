@@ -33,7 +33,7 @@ uniform int ambientTextureSet;
 uniform int normalTextureSet;
 
 uniform vec3 cameraPosition;
-uniform vec3 lightDirection;
+uniform vec3 lightPosition;
 
 
 
@@ -148,7 +148,7 @@ void main()
     vec3 Lo = vec3(0.0);
         
 
-    vec3 L = -lightDirection;    
+    vec3 L = normalize(lightPosition - fragPos);    
     vec3 radiance = 5 * vec3(1,1,1);        
     vec3 specular;
     vec3 diffuse;

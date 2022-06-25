@@ -10,7 +10,7 @@
 
 #include "imgui.h"
 
-PostProcess::PostProcess(std::string name, std::string shaderFileName) :name(name), shaderFileName(shaderFileName) 
+PostProcess::PostProcess(std::string name, std::string shaderFileName, bool enabled) :name(name), shaderFileName(shaderFileName), enabled(enabled)
 {
     CreateComputeShader(shaderFileName, &shader);
 }
@@ -68,7 +68,7 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
     activeProcesses.reserve(postProcesses.size());
     for(int i=0; i<postProcesses.size(); i++)
     {
-        if(postProcesses[i]->active) activeProcesses.push_back(postProcesses[i]);
+        if(postProcesses[i]->enabled) activeProcesses.push_back(postProcesses[i]);
     }
 
     for(int i=0; i<activeProcesses.size(); i++)
@@ -96,7 +96,7 @@ GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width,
 }
 
 //------------------------------------------------------------------------
-GrayScalePostProcess::GrayScalePostProcess() : PostProcess("GrayScale", "shaders/PostProcessing/PostProcesses/GrayScale.compute")
+GrayScalePostProcess::GrayScalePostProcess(bool enabled) : PostProcess("GrayScale", "shaders/PostProcessing/PostProcesses/GrayScale.compute", enabled)
 {}
 
 void GrayScalePostProcess::SetUniforms()
@@ -110,7 +110,7 @@ void GrayScalePostProcess::RenderGui()
 }
 
 //------------------------------------------------------------------------
-ContrastBrightnessPostProcess::ContrastBrightnessPostProcess() : PostProcess("ContrastBrightness", "shaders/PostProcessing/PostProcesses/ContrastBrightness.compute")
+ContrastBrightnessPostProcess::ContrastBrightnessPostProcess(bool enabled) : PostProcess("ContrastBrightness", "shaders/PostProcessing/PostProcesses/ContrastBrightness.compute", enabled)
 {}
 
 void ContrastBrightnessPostProcess::SetUniforms()
@@ -132,7 +132,7 @@ void ContrastBrightnessPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-ChromaticAberationPostProcess::ChromaticAberationPostProcess() : PostProcess("Chromatic Aberation", "shaders/PostProcessing/PostProcesses/ChromaticAberation.compute")
+ChromaticAberationPostProcess::ChromaticAberationPostProcess(bool enabled) : PostProcess("Chromatic Aberation", "shaders/PostProcessing/PostProcesses/ChromaticAberation.compute", enabled)
 {}
 
 void ChromaticAberationPostProcess::SetUniforms()
@@ -161,7 +161,7 @@ void ChromaticAberationPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-PixelizePostProcess::PixelizePostProcess() : PostProcess("Pixelize", "shaders/PostProcessing/PostProcesses/Pixelize.compute")
+PixelizePostProcess::PixelizePostProcess(bool enabled) : PostProcess("Pixelize", "shaders/PostProcessing/PostProcesses/Pixelize.compute", enabled)
 {}
 
 void PixelizePostProcess::SetUniforms()
@@ -177,7 +177,55 @@ void PixelizePostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-ToneMappingPostProcess::ToneMappingPostProcess() : PostProcess("ToneMapping", "shaders/PostProcessing/PostProcesses/ToneMapping.compute")
+GodRaysPostProcess::GodRaysPostProcess(glm::vec3 *lightPosition, glm::mat4 *viewMatrix, glm::mat4 *projectionMatrix, bool enabled) : 
+                        PostProcess("GodRays", "shaders/PostProcessing/PostProcesses/GodRays.compute", enabled),
+                        lightPosition(lightPosition), viewMatrix(viewMatrix), projectionMatrix(projectionMatrix)
+{}
+
+void GodRaysPostProcess::SetUniforms()
+{
+    glm::vec4 lightViewPos = *projectionMatrix * *viewMatrix * glm::vec4(*lightPosition, 1.0f);
+    lightViewPos /= lightViewPos.w;
+    lightViewPos  = lightViewPos * 0.5f + 0.5f;
+    glUniform3fv(glGetUniformLocation(shader, "lightViewPosition"), 1, glm::value_ptr(lightViewPos));
+
+    glUniform1f(glGetUniformLocation(shader, "density"), density);
+    glUniform1f(glGetUniformLocation(shader, "weight"), weight);
+    glUniform1f(glGetUniformLocation(shader, "decay"), decay);
+    glUniform1i(glGetUniformLocation(shader, "numSamples"), numSamples);
+
+    
+}
+
+void GodRaysPostProcess::RenderGui()
+{
+    ImGui::DragInt("numSamples", &numSamples, 1, 0, 1024);
+    ImGui::DragFloat("density", &density, 0.01f, 0, 100);
+    ImGui::DragFloat("weight", &weight, 0.01f, 0, 10);
+    ImGui::DragFloat("decay", &decay, 0.01f, 0, 1);
+}
+
+void GodRaysPostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int height) 
+{
+	glUseProgram(shader);
+	SetUniforms();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureIn);
+    glUniform1i(glGetUniformLocation(shader, "textureIn"), 0); //program must be active
+	
+    glUniform1i(glGetUniformLocation(shader, "textureOut"), 1); //program must be active
+    glBindImageTexture(1, textureOut, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+     
+    glDispatchCompute((width / 32) + 1, (height / 32) + 1, 1);
+	glUseProgram(0);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+ToneMappingPostProcess::ToneMappingPostProcess(bool enabled) : PostProcess("ToneMapping", "shaders/PostProcessing/PostProcesses/ToneMapping.compute", enabled)
 {}
 
 void ToneMappingPostProcess::SetUniforms()
@@ -194,7 +242,7 @@ void ToneMappingPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
-DepthOfFieldPostProcess::DepthOfFieldPostProcess(GLuint positionTexture, int width, int height) : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute"), positionTexture(positionTexture)
+DepthOfFieldPostProcess::DepthOfFieldPostProcess(GLuint positionTexture, int width, int height, bool enabled) : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute", enabled), positionTexture(positionTexture)
 {
     glGenTextures(1, (GLuint*)&cocTexture);
     glBindTexture(GL_TEXTURE_2D, cocTexture);
@@ -371,17 +419,20 @@ void PostProcessing::Load() {
         Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
     }
 
-    lightDirection = glm::normalize(glm::vec3(0, -1, 1));
+    lightPosition = glm::normalize(glm::vec3(0, 46, 0));
 
-    cam = GL_Camera(glm::vec3(0, 10, 0));  
+    cam = GL_Camera(glm::vec3(0, 10, 0));
 
     InitGeometryBuffer();
 
-    postProcessStack.postProcesses.push_back(new GrayScalePostProcess());
+
+
+    postProcessStack.postProcesses.push_back(new GrayScalePostProcess(false));
     postProcessStack.postProcesses.push_back(new ContrastBrightnessPostProcess());
     postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
     postProcessStack.postProcesses.push_back(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight));
-    postProcessStack.postProcesses.push_back(new PixelizePostProcess());
+    postProcessStack.postProcesses.push_back(new PixelizePostProcess(false));
+    postProcessStack.postProcesses.push_back(new GodRaysPostProcess(&lightPosition, cam.GetViewMatrixPtr(), cam.GetProjectionMatrixPtr()));
     postProcessStack.postProcesses.push_back(new ToneMappingPostProcess());
     
     //Color
@@ -505,14 +556,7 @@ void PostProcessing::InitGeometryBuffer()
 void PostProcessing::RenderGUI() {
     ImGui::Begin("Parameters : ");
 
-    glm::vec3 localLightDirection = lightDirection;
-    ImGui::SliderFloat3("Light direction", glm::value_ptr(localLightDirection), -1.0f, 1.0f);
-
-    if(localLightDirection != lightDirection)
-    {
-        lightDirectionChanged=true;
-        lightDirection = localLightDirection;
-    }
+    ImGui::DragFloat3("Light position", glm::value_ptr(lightPosition));
 
 	ImGui::Separator();
 
@@ -530,7 +574,7 @@ void PostProcessing::RenderGUI() {
         PostProcess *item = postProcessStack.postProcesses[n];
         
         ImGui::PushID(n);
-        ImGui::Checkbox("", &postProcessStack.postProcesses[n]->active);
+        ImGui::Checkbox("", &postProcessStack.postProcesses[n]->enabled);
         ImGui::PopID();
         ImGui::SameLine();
         bool isSelected=false;
@@ -577,7 +621,7 @@ void PostProcessing::Render() {
     {
         glUseProgram(renderGBufferShader.programShaderObject);
         glUniform3fv(glGetUniformLocation(renderGBufferShader.programShaderObject, "cameraPosition"), 1, glm::value_ptr(cam.worldPosition));
-        glUniform3fv(glGetUniformLocation(renderGBufferShader.programShaderObject, "lightDirection"), 1, glm::value_ptr(lightDirection));
+        glUniform3fv(glGetUniformLocation(renderGBufferShader.programShaderObject, "lightPosition"), 1, glm::value_ptr(lightPosition));
         glm::mat4 modelView = cam.GetViewMatrix() * Meshes[i]->modelMatrix;
         glUniformMatrix4fv(glGetUniformLocation(renderGBufferShader.programShaderObject, "modelViewMatrix"), 1, GL_FALSE, glm::value_ptr(modelView));
         Meshes[i]->Render(cam, renderGBufferShader.programShaderObject);
