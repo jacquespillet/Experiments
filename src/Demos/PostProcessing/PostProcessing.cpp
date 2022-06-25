@@ -155,6 +155,22 @@ void ChromaticAberationPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
+PixelizePostProcess::PixelizePostProcess() : PostProcess("Pixelize", "shaders/PostProcessing/PostProcesses/Pixelize.compute")
+{}
+
+void PixelizePostProcess::SetUniforms()
+{
+    glUniform1i(glGetUniformLocation(shader, "pixelSize"), pixelSize);
+}
+
+void PixelizePostProcess::RenderGui()
+{
+    ImGui::SliderInt("Pixel Size", &pixelSize, 1, 32);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
 DepthOfFieldPostProcess::DepthOfFieldPostProcess(GLuint positionTexture, int width, int height) : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute"), positionTexture(positionTexture)
 {
     glGenTextures(1, (GLuint*)&cocTexture);
@@ -342,6 +358,7 @@ void PostProcessing::Load() {
     postProcessStack.postProcesses.push_back(new ContrastBrightnessPostProcess());
     postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
     postProcessStack.postProcesses.push_back(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight));
+    postProcessStack.postProcesses.push_back(new PixelizePostProcess());
     
     //Color
     glGenTextures(1, (GLuint*)&postProcessTexture);

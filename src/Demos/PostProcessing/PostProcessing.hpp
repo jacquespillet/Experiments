@@ -53,6 +53,14 @@ struct ChromaticAberationPostProcess : public PostProcess
     bool aroundMouse=false;
 };
 
+struct PixelizePostProcess : public PostProcess
+{
+    PixelizePostProcess();
+    void SetUniforms() override;
+    void RenderGui() override;
+    int pixelSize=5;
+};
+
 struct DepthOfFieldPostProcess : public PostProcess
 {
     DepthOfFieldPostProcess(GLuint positionsTexture,int width, int height);
