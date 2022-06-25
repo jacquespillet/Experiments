@@ -201,7 +201,7 @@ void GodRaysPostProcess::RenderGui()
 {
     ImGui::DragInt("numSamples", &numSamples, 1, 0, 1024);
     ImGui::DragFloat("density", &density, 0.01f, 0, 100);
-    ImGui::DragFloat("weight", &weight, 0.01f, 0, 10);
+    ImGui::DragFloat("weight", &weight, 0.001f, 0, 1);
     ImGui::DragFloat("decay", &decay, 0.01f, 0, 1);
 }
 
@@ -562,11 +562,6 @@ void PostProcessing::RenderGUI() {
 
     ImGui::Text("Post Processes");
 	ImGui::Separator();
-    // for(int i=0; i< postProcessStack.postProcesses.size(); i++)
-    // {
-    //     postProcessStack.postProcesses[i]->RenderGui();
-    //     ImGui::Separator();
-    // }
 
     static PostProcess *selectedPostProcess=nullptr;
     for (int n = 0; n < postProcessStack.postProcesses.size(); n++)

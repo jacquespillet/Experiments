@@ -69,13 +69,13 @@ struct GodRaysPostProcess : public PostProcess
     void SetUniforms() override;
     void RenderGui() override;
     void Process(GLuint textureIn, GLuint textureOut, int width, int height) override;
-    
+
     glm::vec3 *lightPosition;
     glm::mat4 *viewMatrix;
     glm::mat4 *projectionMatrix;
 
     float density = 1.0f;
-    float weight=0.1f;
+    float weight=0.01f;
 
     float decay = 0.99;
     int numSamples = 64;
