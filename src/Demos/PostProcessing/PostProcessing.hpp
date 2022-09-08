@@ -6,6 +6,7 @@
 #include "GL_Helpers/GL_Mesh.hpp"
 #include "GL_Helpers/GL_Camera.hpp"
 
+class PostProcessing;
 struct PostProcess
 {
     PostProcess(std::string name, std::string shaderFileName, bool enabled);
@@ -15,14 +16,16 @@ struct PostProcess
     std::string shaderFileName;
     std::string name;
     GLint shader;
-
+    PostProcessing *demo;
     bool enabled=true;
 };
-
 struct PostProcessStack
 {
+    PostProcessStack(PostProcessing* demo);
     std::vector<PostProcess*> postProcesses;
     GLuint Process(GLuint textureIn, GLuint textureOut, int width, int height);
+    PostProcessing *demo;
+    void AddProcess(PostProcess *Process);
 };
 
 
@@ -77,7 +80,7 @@ struct GodRaysPostProcess : public PostProcess
     float density = 1.0f;
     float weight=0.01f;
 
-    float decay = 0.99;
+    float decay = 0.99f;
     int numSamples = 64;
 };
 
@@ -88,6 +91,45 @@ struct ToneMappingPostProcess : public PostProcess
     void RenderGui() override;
     float exposure = 1;
     int type;
+};
+
+struct SharpenPostProcess : public PostProcess
+{
+    SharpenPostProcess(bool enabled=true);
+    void SetUniforms() override;
+    void RenderGui() override;
+    float strength = 1;
+};
+
+struct VignettePostProcess : public PostProcess
+{
+    VignettePostProcess(bool enabled=true);
+    void SetUniforms() override;
+    void RenderGui() override;
+    float roundness = 0.2f;
+    float opacity = 0.2f;
+};
+
+struct GrainPostProcess : public PostProcess
+{
+    GrainPostProcess(bool enabled=true);
+    void SetUniforms() override;
+    void RenderGui() override;
+    float strength=0.1f;
+    float seed = 95486;
+    int multiplier = 10000;
+    bool dynamic=true;
+};
+
+struct CRTPostPRocess : public PostProcess
+{
+    CRTPostPRocess(bool enabled=true);
+    void SetUniforms() override;
+    void RenderGui() override;
+    glm::vec2 curvature = glm::vec2(3,3);
+    glm::vec2 scanLineOpacity = glm::vec2(0.5,0.5);
+    glm::vec2 resolution = glm::vec2(1,1);
+    float brightness=1;
 };
 
 struct DepthOfFieldPostProcess : public PostProcess
@@ -132,10 +174,10 @@ public :
     void RightClickUp();
     void Scroll(float offset);
 
+    float elapsedTime;
 private:
     clock_t t;
     float deltaTime;
-    float elapsedTime;
         
     GL_Camera cam;
 

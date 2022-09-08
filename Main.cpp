@@ -37,6 +37,7 @@
 #include "Demos/KuwaharaFilter/KuwaharaFilter.hpp"
 #include "Demos/SSSS/SSSS.hpp"
 #include "Demos/PostProcessing/PostProcessing.hpp"
+#include "Demos/SVO/SVO.hpp"
 
 
 
@@ -201,6 +202,12 @@ struct DemoManager {
             break;
         case 25:
             demo = new PostProcessing;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
+        case 26:
+            demo = new SVO;
             demo->windowWidth = windowWidth;
             demo->windowHeight = windowHeight;
             demo->Load();
@@ -502,6 +509,10 @@ private:
             if(ImGui::Button("Post Processing", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(25);
+            }
+            if(ImGui::Button("SVO", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(26);
             }
 
             ImGui::Text("WIP"); 

@@ -61,7 +61,12 @@ void PostProcess::Process(GLuint textureIn, GLuint textureOut, int width, int he
 //     read out, write in
 //     return in
 
-
+PostProcessStack::PostProcessStack(PostProcessing * demo) : demo(demo){}
+void PostProcessStack::AddProcess(PostProcess *Process)
+{
+    Process->demo = demo;
+    postProcesses.push_back(Process);
+}
 GLuint PostProcessStack::Process(GLuint textureIn, GLuint textureOut, int width, int height)
 {
     std::vector<PostProcess*> activeProcesses;
@@ -242,6 +247,86 @@ void ToneMappingPostProcess::RenderGui()
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
+SharpenPostProcess::SharpenPostProcess(bool enabled) : PostProcess("Sharpen", "shaders/PostProcessing/PostProcesses/Sharpen.compute", enabled)
+{}
+
+void SharpenPostProcess::SetUniforms()
+{
+    glUniform1f(glGetUniformLocation(shader, "strength"), strength);
+}
+
+void SharpenPostProcess::RenderGui()
+{
+    ImGui::DragFloat("Strength", &strength,0.01f, 0.01f, 10.0f);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+VignettePostProcess::VignettePostProcess(bool enabled) : PostProcess("Vignette", "shaders/PostProcessing/PostProcesses/Vignette.compute", enabled)
+{}
+
+void VignettePostProcess::SetUniforms()
+{
+    glUniform1f(glGetUniformLocation(shader, "roundness"), roundness);
+    glUniform1f(glGetUniformLocation(shader, "opacity"), opacity);
+}
+
+void VignettePostProcess::RenderGui()
+{
+    ImGui::DragFloat("roundness", &roundness,0.01f, 0.01f, 5.0f);
+    ImGui::DragFloat("opacity", &opacity,0.01f, 0.01f, 10.0f);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+CRTPostPRocess::CRTPostPRocess(bool enabled) : PostProcess("CRT", "shaders/PostProcessing/PostProcesses/CRT.compute", enabled)
+{}
+
+void CRTPostPRocess::SetUniforms()
+{
+    glUniform2fv(glGetUniformLocation(shader, "curvature"), 1, glm::value_ptr(curvature));
+    glUniform2fv(glGetUniformLocation(shader, "scanLineOpacity"), 1, glm::value_ptr(scanLineOpacity));
+    glUniform2fv(glGetUniformLocation(shader, "resolution"), 1, glm::value_ptr(resolution));
+    glUniform1f(glGetUniformLocation(shader, "brightness"), brightness);
+}
+
+void CRTPostPRocess::RenderGui()
+{
+    ImGui::DragFloat2("Curvature", &curvature.x,0.01f, 0.01f, 10.0f);
+    ImGui::DragFloat2("ScanLineOpacity", &scanLineOpacity.x,0.01f, 0.01f, 1.0f);
+    ImGui::DragFloat2("Resolution", &resolution.x,0.01f, 0.01f, 3.0f);
+    ImGui::DragFloat("Brightness", &brightness, 0.01, 0, 4);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+GrainPostProcess::GrainPostProcess(bool enabled) : PostProcess("Grain", "shaders/PostProcessing/PostProcesses/Grain.compute", enabled)
+{}
+
+void GrainPostProcess::SetUniforms()
+{
+    glUniform1f(glGetUniformLocation(shader, "strength"), strength);
+    glUniform1f(glGetUniformLocation(shader, "seed"), seed);
+    glUniform1f(glGetUniformLocation(shader, "elapsedTime"), demo->elapsedTime);
+    glUniform1i(glGetUniformLocation(shader, "multiplier"), multiplier);
+    glUniform1i(glGetUniformLocation(shader, "dynamic"), (int)dynamic);
+    std::cout << demo->elapsedTime << std::endl;
+}
+
+void GrainPostProcess::RenderGui()
+{
+    ImGui::DragFloat("Strength", &strength,0.01f, 0.01f, 10.0f);
+    ImGui::DragFloat("Seed", &seed, 100);
+    ImGui::DragInt("Multiplier", &multiplier, 100);
+    ImGui::Checkbox("Dynamic", &dynamic);
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
 DepthOfFieldPostProcess::DepthOfFieldPostProcess(GLuint positionTexture, int width, int height, bool enabled) : PostProcess("DepthOfField", "shaders/PostProcessing/PostProcesses/DepthOfField.compute", enabled), positionTexture(positionTexture)
 {
     glGenTextures(1, (GLuint*)&cocTexture);
@@ -408,8 +493,7 @@ void DepthOfFieldPostProcess::Process(GLuint textureIn, GLuint textureOut, int w
 
 //------------------------------------------------------------------------
 
-PostProcessing::PostProcessing() {
-}
+PostProcessing::PostProcessing() : postProcessStack(this) {}
 
 void PostProcessing::Load() {
 
@@ -427,13 +511,17 @@ void PostProcessing::Load() {
 
 
 
-    postProcessStack.postProcesses.push_back(new GrayScalePostProcess(false));
-    postProcessStack.postProcesses.push_back(new ContrastBrightnessPostProcess());
-    postProcessStack.postProcesses.push_back(new ChromaticAberationPostProcess());
-    postProcessStack.postProcesses.push_back(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight));
-    postProcessStack.postProcesses.push_back(new PixelizePostProcess(false));
-    postProcessStack.postProcesses.push_back(new GodRaysPostProcess(&lightPosition, cam.GetViewMatrixPtr(), cam.GetProjectionMatrixPtr()));
-    postProcessStack.postProcesses.push_back(new ToneMappingPostProcess());
+    postProcessStack.AddProcess(new GrayScalePostProcess(false));
+    postProcessStack.AddProcess(new ContrastBrightnessPostProcess(false));
+    postProcessStack.AddProcess(new ChromaticAberationPostProcess(false));
+    postProcessStack.AddProcess(new DepthOfFieldPostProcess(positionTexture, windowWidth, windowHeight,false));
+    postProcessStack.AddProcess(new PixelizePostProcess(false));
+    postProcessStack.AddProcess(new GodRaysPostProcess(&lightPosition, cam.GetViewMatrixPtr(), cam.GetProjectionMatrixPtr(),false));
+    postProcessStack.AddProcess(new ToneMappingPostProcess(false));
+    postProcessStack.AddProcess(new SharpenPostProcess(false));
+    postProcessStack.AddProcess(new GrainPostProcess(false));
+    postProcessStack.AddProcess(new CRTPostPRocess(false));
+    postProcessStack.AddProcess(new VignettePostProcess());
     
     //Color
     glGenTextures(1, (GLuint*)&postProcessTexture);
@@ -608,6 +696,10 @@ void PostProcessing::RenderGUI() {
 }
 
 void PostProcessing::Render() {
+    clock_t delta = clock() - t;
+    deltaTime = ((float)delta)/CLOCKS_PER_SEC;
+    elapsedTime += deltaTime;
+
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -644,6 +736,9 @@ void PostProcessing::Render() {
     glUniform1i(glGetUniformLocation(resolveGBufferShader.programShaderObject, "postProcessedTexture"), 3);
 
     screenSpaceQuad.RenderShader(resolveGBufferShader.programShaderObject);
+
+    
+    t = clock();
 }
 
 void PostProcessing::Unload() {

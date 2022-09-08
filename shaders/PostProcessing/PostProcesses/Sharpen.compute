@@ -1,0 +1,29 @@
+//inputs
+#version 440
+//output
+layout ( binding = 0 , rgba16f ) uniform image2D textureIn;
+layout ( binding = 1 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+uniform float strength;
+
+void main()
+{
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    float neighbour = strength * -1;
+    float center   = strength * 4 + 1;
+    vec3 color =
+    imageLoad(textureIn, ivec2(gl_GlobalInvocationID.x + 0, gl_GlobalInvocationID.y + 1)).rgb
+    * neighbour
+    + imageLoad(textureIn, ivec2(gl_GlobalInvocationID.x - 1, gl_GlobalInvocationID.y + 0)).rgb
+    * neighbour
+    + imageLoad(textureIn, ivec2(gl_GlobalInvocationID.x + 0, gl_GlobalInvocationID.y + 0)).rgb
+    * center
+    + imageLoad(textureIn, ivec2(gl_GlobalInvocationID.x + 1, gl_GlobalInvocationID.y + 0)).rgb
+    * neighbour
+    + imageLoad(textureIn, ivec2(gl_GlobalInvocationID.x + 0, gl_GlobalInvocationID.y - 1)).rgb
+    * neighbour;
+    
+    imageStore ( textureOut , pixelCoord , vec4(color, 1));
+}

@@ -1,0 +1,28 @@
+//inputs
+#version 440
+//output
+layout ( binding = 0 , rgba16f ) uniform image2D textureIn;
+layout ( binding = 1 , rgba16f ) uniform image2D textureOut;
+
+layout ( local_size_x = 32 , local_size_y = 32) in;
+
+float degToRad= 0.0174533;
+
+uniform float strength;
+uniform float seed;
+uniform int multiplier;
+uniform int dynamic;
+uniform float elapsedTime;
+
+void main()
+{
+    float finalSeed=seed;
+    if(dynamic>0) finalSeed = elapsedTime;
+    float randomIntensity = fract( multiplier* sin(( gl_GlobalInvocationID.x+ gl_GlobalInvocationID.y * finalSeed) * degToRad));
+    
+    ivec2 pixelCoord = ivec2 ( gl_GlobalInvocationID.xy );
+    vec3 color =imageLoad(textureIn, pixelCoord).rgb;
+    float grainStrength = strength *  randomIntensity;
+    color.rgb += grainStrength;
+    imageStore ( textureOut , pixelCoord , vec4(color, 1));
+}
