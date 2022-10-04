@@ -212,6 +212,12 @@ struct DemoManager {
             demo->windowHeight = windowHeight;
             demo->Load();
             break;
+        case 27:
+            demo = new MeshManipulation;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;
         default:
             break;
         }
@@ -510,9 +516,9 @@ private:
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(25);
             }
-            if(ImGui::Button("SVO", ImVec2(100, 20))) {
+            if(ImGui::Button("Mesh Manipulation", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
-                demoManager.LoadDemo(26);
+                demoManager.LoadDemo(27);
             }
 
             ImGui::Text("WIP"); 

@@ -1,0 +1,33 @@
+Build centroid list :
+for each face of the model
+    calculate the centroid of the face
+
+Build edge points list :
+for each edge in the model
+    Calculate the "edge point" of the edge.
+    it is a weighted average of the edge mid point, and 
+    of the 2 faces that share this edge.
+    Effectively, it pushes the edge point towards the face positions
+
+Build old position list :
+Store all the old positions
+
+Move all the vertex positions :
+For each vertex in the model
+    calculate the average position of all the faces that share this vertex
+    calculate the average edge mid point of all the edges that share this vertex (Not the edge points !)
+    calculate the new position using a combination of :
+        old vertex position
+        average face position
+        average edge position
+
+For each face in the model
+    Subdivide the face into 6 triangles
+        Use the 3 previously calculated new positions of the face
+        Use the 3 previously calculated edge mid points of the face
+        Use the old face centroid
+
+        3 triangles :
+            new position, with edge mid points
+        3 triangles :
+            edge mid points with face centroid
