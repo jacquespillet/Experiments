@@ -20,7 +20,7 @@ public:
         RecalculateProjectionMatrix(); 
         RecalculateLookat();
     }
-
+    void SetTarget(glm::vec3 _target) { this->target = _target; RecalculateLookat();}
     void SetFov(float _fov) {this->fov = _fov; RecalculateProjectionMatrix();}
     void SetNearPlane(float _nearPlane) {this->nearPlane = _nearPlane; RecalculateProjectionMatrix();}
     void SetFarPlane(float _farPlane) {this->farPlane = _farPlane; RecalculateProjectionMatrix();}

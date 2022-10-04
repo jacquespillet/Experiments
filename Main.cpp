@@ -38,6 +38,7 @@
 #include "Demos/SSSS/SSSS.hpp"
 #include "Demos/PostProcessing/PostProcessing.hpp"
 #include "Demos/SVO/SVO.hpp"
+#include "Demos/MeshManipulation/MeshManipulation.hpp"
 
 
 
@@ -522,6 +523,10 @@ private:
             }
 
             ImGui::Text("WIP"); 
+            if(ImGui::Button("SVO", ImVec2(100, 20))) {
+                demoManager.ClearDemo();
+                demoManager.LoadDemo(26);
+            }
             if(ImGui::Button("Boids", ImVec2(100, 20))) {
                 demoManager.ClearDemo();
                 demoManager.LoadDemo(13);

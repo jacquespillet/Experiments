@@ -42,6 +42,24 @@ GL_Mesh::GL_Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> triangl
     RecalculateBoundingBox();
 }
 
+void GL_Mesh::RebuildBuffers()
+{
+//Bind VAO
+    glBindVertexArray(vertexArrayObject);
+    
+    //bind buffers
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GL_Mesh::Vertex), (uint8_t*)&vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangles.size() * sizeof(unsigned int), (uint8_t*)&triangles[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);        //Unbind VAO
+    glBindVertexArray(0);
+    //Unbind array and element buffers
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+
+}
+
 void GL_Mesh::Render(const GL_Camera& camera, GLuint shader) {
     if(!visible) return; 
     
@@ -93,6 +111,17 @@ void GL_Mesh::RenderShader(GLuint shader)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);    
 	glUseProgram(0);    
+}
+
+void GL_Mesh::Render()
+{
+    glBindVertexArray(vertexArrayObject);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glDrawElements(GL_TRIANGLES, (GLsizei)triangles.size(), GL_UNSIGNED_INT, (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);    
 }
 
 void GL_Mesh::RenderTo3DTexture(const glm::mat4& viewProjection, GLuint shader)

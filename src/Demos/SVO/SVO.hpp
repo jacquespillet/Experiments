@@ -7,6 +7,19 @@
 #include "GL_Helpers/GL_Camera.hpp"
 
 
+struct DispatchIndirectArgs
+{
+    GLuint numGroupsX, numGroupsY, numGroupsZ;
+};
+
+struct BuildInfo
+{
+    GLuint fragmentCount;
+    GLuint voxelResolution;
+    GLuint allocBegin;
+    GLuint allocNum;
+};
+
 class SVO : public Demo {
 public : 
     SVO();
@@ -23,26 +36,6 @@ public :
     void Scroll(float offset);
 
 private:
-
-    struct ShadowMap
-    {
-        GLuint depthFramebuffer;
-        GL_Texture depthTexture;
-        GL_Shader shadowShader;
-        glm::mat4 depthViewProjectionMatrix;
-        int resolution=4096;
-    };
-
-    struct VoxelScene
-    {
-        GL_Shader voxelizationShader;
-        GL_Texture3D voxelTexture;
-        const int voxelDimensions = 512;
-        const float voxelGridWorldSize = 150.0f;
-        glm::mat4 projX, projY, projZ;
-        bool voxelInitialized=false;
-    };
-
     clock_t t;
     float deltaTime;
     float elapsedTime;
@@ -50,33 +43,68 @@ private:
     GL_Camera cam;
 
     GL_Shader MeshShader;
+    bool renderMesh=false;
 
     std::vector<GL_Mesh*> Meshes;
     std::vector<GL_Material*> Materials;
 
     glm::vec3 lightDirection;
 
-    //Shadow map
-    bool InitShadowMap();
-    void DrawSceneToShadowMap();
-    ShadowMap shadowMap;
-
-    //Voxel scene
-    void Init3DTex();
-    void voxelizeScene();
-    void BuildOctree();
-    VoxelScene voxelScene;
-
-
-    bool showOcclusion=true;
-    bool showIndirectDiffuse=true;
-    bool showDirectDiffuse=true;
-    bool showAmbient=true;
-    bool showSpecular=true;
-
-    float directAmbient=0.02f;
-    float specularity=0.2f;
-
     bool lightDirectionChanged=false;
 
+    bool specularTextureSet=false;
+    bool normalTextureSet=false;
+
+    void SynchronizeGPU();
+
+    GL_Shader renderShader;
+    GL_Mesh *quad;
+
+    struct
+    {
+        int resolution;
+        GL_Shader shader;
+
+        int fragmentNum;
+
+        struct
+        {
+            GLuint buffer;
+        } FragmentList;
+
+        struct
+        {
+            GLuint buffer;
+            GLuint *mappedMemory;
+        } Counter;
+
+        struct
+        {
+            GLuint rbo;
+            GLuint fbo;
+        } Framebuffer;
+    } Voxelizer;
+
+    struct
+    {
+        GLint tagNodeShader;
+        GLint allocNodeShader;
+        GLint modifyArgsShader;
+
+        
+        struct
+        {
+            GLuint buffer;
+            GLuint *mappedMemory;
+        } Counter;
+
+        GLuint allocIndirectBuffer;
+        GLuint buildInfoBuffer;
+    } OctreeBuilder;
+
+    struct
+    {
+        int levels;
+        GLuint buffer;
+    } Octree;
 };

@@ -25,7 +25,8 @@ public:
     void RenderDepthOnly(const glm::mat4& viewProjection, GLuint shader);
     void RenderTo3DTexture(const glm::mat4& viewProjection, GLuint shader);
     void RenderShader(GLuint shader);
-    // void Render();
+    void RebuildBuffers();
+    void Render();
 
     void Init();
     void Destroy();
