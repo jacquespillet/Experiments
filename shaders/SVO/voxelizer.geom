@@ -12,16 +12,23 @@ out vec2 gTexcoords;
 out vec3 gNormal;
 out vec3 gVoxelPos;
 
-uniform int uVoxelResolution;
+uniform int voxelRes;
 
 vec2 Project(in vec3 v, in int axis) { return axis == 0 ? v.yz : (axis == 1 ? v.xz : v.xy); }
 
 void main() {
-	//get projection axis
-	vec3 axis_weight = abs(cross(gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz));
-	int axis = 2;
-	if(axis_weight.x >= axis_weight.y && axis_weight.x > axis_weight.z) axis = 0;
-	else if(axis_weight.y >= axis_weight.z && axis_weight.y > axis_weight.x) axis = 1;
+    //Edges of the current triangle
+    vec3 p1 = gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz;
+    vec3 p2 = gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz;
+    
+    //Normal of the current triangle
+    vec3 normal = (normalize(cross(p1,p2)));
+
+    //Project the triangle on one of the 3 basis planes.
+    float nDotX = abs(normal.x);
+    float nDotY = abs(normal.y);
+    float nDotZ = abs(normal.z);
+    int axis = (nDotX >= nDotY && nDotX >= nDotZ) ? 0 : (nDotY >= nDotX && nDotY >= nDotZ) ? 1 : 2;
 
 	//project the positions
 	vec3 pos0 = gl_in[0].gl_Position.xyz;
@@ -30,17 +37,19 @@ void main() {
 
 	gTexcoords = vTexcoords[0];
 	gNormal = normalize(vNormal[0]);
-	gVoxelPos = (pos0 + 1.0f) * 0.5f * uVoxelResolution;
+	gVoxelPos = (pos0 + 1.0f) * 0.5f * voxelRes;
 	gl_Position = vec4(Project(pos0, axis), 1.0f, 1.0f);
 	EmitVertex();
+
 	gTexcoords = vTexcoords[1];
 	gNormal = normalize(vNormal[1]);
-	gVoxelPos = (pos1 + 1.0f) * 0.5f * uVoxelResolution;
+	gVoxelPos = (pos1 + 1.0f) * 0.5f * voxelRes;
 	gl_Position = vec4(Project(pos1, axis), 1.0f, 1.0f);
 	EmitVertex();
+	
 	gTexcoords = vTexcoords[2];
 	gNormal = normalize(vNormal[2]);
-	gVoxelPos = (pos2 + 1.0f) * 0.5f * uVoxelResolution;
+	gVoxelPos = (pos2 + 1.0f) * 0.5f * voxelRes;
 	gl_Position = vec4(Project(pos2, axis), 1.0f, 1.0f);
 	EmitVertex();
 	EndPrimitive();

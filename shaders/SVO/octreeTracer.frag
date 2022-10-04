@@ -29,7 +29,7 @@ uniform int uViewType, uBeamEnable;
 out vec4 oFragColor;
 
 layout(std430, binding = 3) readonly buffer uuOctree { uint uOctree[]; };
-layout(binding = 4) uniform sampler2D uBeam;
+// layout(binding = 4) uniform sampler2D uBeam;
 
 uint iter = 0;
 struct StackItem { uint node; float t_max; } stack[STACK_SIZE];

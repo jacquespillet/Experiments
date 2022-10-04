@@ -1,7 +1,14 @@
 #version 450 core
-layout (local_size_x = 64, local_size_y = 1, local_size_z = 1 ) in;
+layout (local_size_x = 1024, local_size_y = 1, local_size_z = 1 ) in;
 
-layout(std430, binding = 2) readonly buffer uuFragmentList { uvec2 uFragmentList[]; };
+
+struct Voxel
+{
+	uvec3 position;
+	uint color;
+};
+layout(std430, binding = 2) readonly buffer VoxelList { Voxel voxelList[]; };
+
 layout(std430, binding = 3) buffer uuOctree { uint uOctree[]; };
 layout(std430, binding = 9) readonly buffer uuBuildInfo { 
 	uint uFragmentNum, uVoxelResolution, uAllocBegin, uAllocNum;
@@ -11,37 +18,49 @@ uvec4 LeafToUvec4(uint val) { return uvec4( (val & 0xffu), ((val >> 8u) & 0xffu)
 uint Uvec4ToLeaf(uvec4 vec) { return (min(vec.w, 0x3fu) << 24u) | (vec.x & 0xffu) | ((vec.y & 0xffu) << 8u) | ((vec.z & 0xffu) << 16u) | 0xC0000000u; }
 
 void main() {
+	//This shader goes for each voxel generated in the list, and tags wether we should split it further or not.
 	if(gl_GlobalInvocationID.x >= uFragmentNum) return;
-	uvec2 ufragment = uFragmentList[gl_GlobalInvocationID.x];
+	Voxel voxel = voxelList[gl_GlobalInvocationID.x];
 
-	uint level_dim = uVoxelResolution;
-	uvec3 level_pos = uvec3(ufragment.x & 0xfffu, (ufragment.x >> 12u) & 0xfffu, (ufragment.x >> 24u) | ((ufragment.y >> 28u) << 8u));
-	bvec3 level_cmp;
+ 	//For the first stage, this is 2 ^ 10 : amount of voxels in one axis.
+	uint levelDimension = uVoxelResolution;
+	uvec3 voxelPosition = voxel.position;
+	bvec3 levelComparison;
 
-	uint idx = 0u, cur = 0u;
+	uint index = 0u;
+	uint current = 0u;
+	
 	do {
-		level_dim >>= 1;
+		levelDimension >>= 1; //Multiply by 2
+		
+		//Check if the current voxel position is greater than the level dimensions
+		levelComparison = greaterThanEqual(voxelPosition, uvec3(levelDimension)); //If 
+		
+		//
+		index = current + (uint(levelComparison.x) | (uint(levelComparison.y) << 1u) | (uint(levelComparison.z) << 2u));
 
-		level_cmp = greaterThanEqual(level_pos, uvec3(level_dim));
-		idx = cur + (uint(level_cmp.x) | (uint(level_cmp.y) << 1u) | (uint(level_cmp.z) << 2u));
-		cur = uOctree[idx] & 0x3fffffffu;
-		level_pos -= uvec3(level_cmp) * level_dim;
-	} while(cur != 0u && level_dim > 1u);
+		current = uOctree[index] & 0x3fffffffu;
 
-	uOctree[idx] |= 0x80000000u;
-	if(level_dim == 1u) {
-		//uOctree[idx] = 0xC0000000u | (ufragment.y & 0xffffffu); //termination tag and color data
+		voxelPosition -= uvec3(levelComparison) * levelDimension;
+	} while(current != 0u && levelDimension > 1u);
+
+	uOctree[index] |= 0x80000000u;
+	if(levelDimension == 1u) {
+		//uOctree[index] = 0xC0000000u | (ufragment.y & 0xffffffu); //termination tag and color data
 
 		//atomic moving average
-		uint prev_val = 0, cur_val, new_val = 0xC1000000u | (ufragment.y & 0xffffffu);
+		uint prev_val = 0;
+		uint current_val=0;
+		uint new_val = 0xC1000000u | (voxel.color & 0xffffffu);
+		
 		uvec4 rgba = LeafToUvec4(new_val);
-		while( ( cur_val = atomicCompSwap(uOctree[idx], prev_val, new_val) ) != prev_val ) {
-			prev_val = cur_val;
+		while( ( current_val = atomicCompSwap(uOctree[index], prev_val, new_val) ) != prev_val ) {
+			prev_val = current_val;
 			uvec4 prev_rgba = LeafToUvec4(prev_val);
 			prev_rgba.xyz *= prev_rgba.w;
-			uvec4 cur_rgba = prev_rgba + rgba;
-			cur_rgba.xyz /= cur_rgba.w;
-			new_val = Uvec4ToLeaf(cur_rgba);
+			uvec4 current_rgba = prev_rgba + rgba;
+			current_rgba.xyz /= current_rgba.w;
+			new_val = Uvec4ToLeaf(current_rgba);
 		}
 	}
 }

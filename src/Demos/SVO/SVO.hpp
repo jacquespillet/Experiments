@@ -19,6 +19,12 @@ struct BuildInfo
     GLuint allocBegin;
     GLuint allocNum;
 };
+struct Voxel
+{
+	glm::uvec3 position;
+	uint32_t color;
+};
+
 
 class SVO : public Demo {
 public : 
@@ -83,10 +89,21 @@ private:
             GLuint rbo;
             GLuint fbo;
         } Framebuffer;
+
     } Voxelizer;
 
-    struct
+    struct octreeBuilder
     {
+        void TagNode(uint32_t count, std::vector<Voxel> &voxelList);
+        void ModifyArgs();
+        void AllocNode();
+
+        std::vector<uint32_t> octree;
+        uint32_t counter;
+
+        BuildInfo *buildInfo;
+        DispatchIndirectArgs *commandMap;
+
         GLint tagNodeShader;
         GLint allocNodeShader;
         GLint modifyArgsShader;
