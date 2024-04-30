@@ -1,9 +1,0 @@
-libdir=D:/Boulot/libs/assimp/assimp-5.2.3/build/install/lib
-includedir=D:/Boulot/libs/assimp/assimp-5.2.3/build/install/include
-
-Name: Assimp
-Description: Import various well-known 3D model formats in an uniform manner.
-Version: 5.2.0
-Libs: -L${libdir} -lassimp
-Libs.private:  
-Cflags: -I${includedir}

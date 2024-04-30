@@ -9,7 +9,7 @@
 #include <random>
 
 #include "imgui.h"
-#include "imgui_plot.h"
+// #include "imgui_plot.h"
 
 void FFT::DFT1D(const std::vector<complex>& in, std::vector<complex>& out) 
 {
@@ -286,50 +286,50 @@ void FFT::RenderGUI() {
 		{
 			DoIDFT1D();
 		}
-		ImGui::PlotConfig conf;
-		conf.values.ys = inputFloat1D.data();
-		conf.values.count = size1D;
-		conf.scale.min = -1;
-		conf.scale.max = 1;
-		conf.tooltip.show = true;
-		conf.tooltip.format = "x=%.2f, y=%.2f";
-		conf.grid_y.show = true;
-		conf.frame_size = ImVec2((float)windowWidth, 300);
-		conf.line_thickness = 2.f;
-		ImGui::Plot("plot", conf);
+		// ImGui::PlotConfig conf;
+		// conf.values.ys = inputFloat1D.data();
+		// conf.values.count = size1D;
+		// conf.scale.min = -1;
+		// conf.scale.max = 1;
+		// conf.tooltip.show = true;
+		// conf.tooltip.format = "x=%.2f, y=%.2f";
+		// conf.grid_y.show = true;
+		// conf.frame_size = ImVec2((float)windowWidth, 300);
+		// conf.line_thickness = 2.f;
+		// ImGui::Plot("plot", conf);
 
-		if(dftOutputFloat1D.size() > 0)
-		{
-			ImGui::PlotConfig confDftOut;
-			// confDftOut.values.xs = inputXAxis.data();
-			confDftOut.values.ys = dftOutputFloat1D.data();
-			confDftOut.values.count = (int)dftOutputFloat1D.size()/2;
-			confDftOut.scale.min = -1;
-			confDftOut.scale.max = 1;
-			confDftOut.tooltip.show = true;
-			confDftOut.tooltip.format = "x=%.2f, y=%.2f";
-			// confDftOut.grid_x.show = true;
-			confDftOut.grid_y.show = true;
-			confDftOut.frame_size = ImVec2((float)windowWidth, 300);
-			confDftOut.line_thickness = 2.f;
-			ImGui::Plot("plot", confDftOut);
-		}
-		if(idftOutputFloat1D.size() > 0)
-		{
-			ImGui::PlotConfig confIdftOut;
-			// confIdftOut.values.xs = inputXAxis.data();
-			confIdftOut.values.ys = idftOutputFloat1D.data();
-			confIdftOut.values.count = (int)idftOutputFloat1D.size();
-			confIdftOut.scale.min = -1;
-			confIdftOut.scale.max = 1;
-			confIdftOut.tooltip.show = true;
-			confIdftOut.tooltip.format = "x=%.2f, y=%.2f";
-			// confIdftOut.grid_x.show = true;
-			confIdftOut.grid_y.show = true;
-			confIdftOut.frame_size = ImVec2((float)windowWidth, 300);
-			confIdftOut.line_thickness = 2.f;
-			ImGui::Plot("plot", confIdftOut);
-		}
+		// if(dftOutputFloat1D.size() > 0)
+		// {
+		// 	ImGui::PlotConfig confDftOut;
+		// 	// confDftOut.values.xs = inputXAxis.data();
+		// 	confDftOut.values.ys = dftOutputFloat1D.data();
+		// 	confDftOut.values.count = (int)dftOutputFloat1D.size()/2;
+		// 	confDftOut.scale.min = -1;
+		// 	confDftOut.scale.max = 1;
+		// 	confDftOut.tooltip.show = true;
+		// 	confDftOut.tooltip.format = "x=%.2f, y=%.2f";
+		// 	// confDftOut.grid_x.show = true;
+		// 	confDftOut.grid_y.show = true;
+		// 	confDftOut.frame_size = ImVec2((float)windowWidth, 300);
+		// 	confDftOut.line_thickness = 2.f;
+		// 	ImGui::Plot("plot", confDftOut);
+		// }
+		// if(idftOutputFloat1D.size() > 0)
+		// {
+		// 	ImGui::PlotConfig confIdftOut;
+		// 	// confIdftOut.values.xs = inputXAxis.data();
+		// 	confIdftOut.values.ys = idftOutputFloat1D.data();
+		// 	confIdftOut.values.count = (int)idftOutputFloat1D.size();
+		// 	confIdftOut.scale.min = -1;
+		// 	confIdftOut.scale.max = 1;
+		// 	confIdftOut.tooltip.show = true;
+		// 	confIdftOut.tooltip.format = "x=%.2f, y=%.2f";
+		// 	// confIdftOut.grid_x.show = true;
+		// 	confIdftOut.grid_y.show = true;
+		// 	confIdftOut.frame_size = ImVec2((float)windowWidth, 300);
+		// 	confIdftOut.line_thickness = 2.f;
+		// 	ImGui::Plot("plot", confIdftOut);
+		// }
 	}
 	else
 	{
