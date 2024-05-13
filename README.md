@@ -59,7 +59,7 @@ Here's a little write up about the implementation.
 
 A little tool to view spherical harmonics that I built while [reading](https://3dvar.com/Green2003Spherical.pdf) about them.
 
-![SH]()
+![SH](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SH_0.PNG?raw=true)
 
 ## [GPU Bitonic Sort]()
 
