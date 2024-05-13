@@ -85,6 +85,7 @@ void TiledRendering::Load() {
     InitDeferred();
 
     CreateComputeShader("shaders/TiledRendering/AnimateLights.compute", &animateLightsShader);
+    t = clock();
 }
 
 void TiledRendering::Unload() {

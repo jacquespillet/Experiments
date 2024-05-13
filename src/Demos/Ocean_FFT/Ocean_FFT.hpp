@@ -33,19 +33,19 @@ private:
 
     GL_Camera cam;
 
-    uint32_t resolution = 256;
+    uint32_t resolution = 512;
     float windSpeed = 40.0f; 
     float g = 9.81f;
     float L = 1000;
     float A = 4;
     glm::vec2 windDirection;
     glm::vec3 lightDirection;
-    float planeSize = 10;
-    float metallic = 0.7f;
-    float roughness = 0.4f;
-    float lightIntensity = 1.0f;
-    float ambient = 0.15f;
-    float height = 1;
+    float planeSize = 20;
+    float metallic = 0.26f;
+    float roughness = 0.3f;
+    float lightIntensity = 0.7f;
+    float ambient = 1;
+    float height = 2.227;
 
     std::vector<glm::vec4> h0kBuffer;
     std::vector<glm::vec4> h0MinuskBuffer;

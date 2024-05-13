@@ -12,7 +12,7 @@ in vec4 fragWorldPos;
 
 void main()
 {
-    vec2 texelSize = vec2(1.0 / 1280, 1.0 / 720);
+    vec2 texelSize = vec2(1.0 / 1920, 1.0 / 1080);
 
     //-1, 1
     vec2 uv = gl_FragCoord.xy * texelSize;

@@ -22,5 +22,7 @@ void main()
     gl_Position = position;
 
     vec3 vel = particles[gl_VertexID].vel;
-    color = vec4(vel * 0.5 + 0.5, 1.0);
+
+    color = vec4(0.3, 0.14, 0.8, 1.0);
+    // color = vec4(vel * 0.5 + 0.5, 1.0);
 }

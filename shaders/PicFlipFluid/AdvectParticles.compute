@@ -6,7 +6,7 @@ uniform vec3 eye;
 uniform vec3 mousePos;
 uniform vec3 mouseVel;
 
-const float mouse_range = 0.25;
+const float mouse_range = 1;
 
 bool raySphereIntersection(vec3 r0, vec3 rd, vec3 s0, float sr) {
     float a = dot(rd, rd);

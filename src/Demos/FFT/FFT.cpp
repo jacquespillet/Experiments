@@ -9,7 +9,13 @@
 #include <random>
 
 #include "imgui.h"
-// #include "imgui_plot.h"
+#include "implot.h"
+
+
+
+#include <chrono>
+using namespace std::chrono;
+ 
 
 void FFT::DFT1D(const std::vector<complex>& in, std::vector<complex>& out) 
 {
@@ -94,12 +100,13 @@ void FFT::FFT2D(const std::vector<complex>& in, std::vector<complex>& out)
 {
 	std::vector<complex> temp(in.size());
 	std::vector<complex> outLine(width);
+	std::vector<complex> inLine(width);
 	for(int i=0; i<height; i++)
 	{
 		int start = i * width;
 		int end = start + width;
-		std::vector<complex> line(in.begin() + start, in.begin() + end);
-		FFT1D(line, outLine);
+		memcpy(inLine.data(), &in[start], width * sizeof(complex));
+		FFT1D(inLine, outLine);
 		for(int j=start, k=0; j<end; j++, k++)
 		{
 			temp[j] = outLine[k];
@@ -175,7 +182,7 @@ void FFT::InitBuffers1D()
 	for (int i = 0; i < numFrequencies; i++)
 	{
 		frequencies[i] = (float)std::rand() / (float)RAND_MAX;
-		frequencies[i] *= 20;
+		frequencies[i] *= 100;
 		frequencies[i] = std::floor(frequencies[i]);
 		std::cout << frequencies[i] << std::endl;
 	}
@@ -196,8 +203,7 @@ void FFT::InitBuffers1D()
 
 void FFT::InitBuffers2D()
 {
-	std::string filename = "C:/Users/jacqu/OneDrive/Pictures/geoguessr/Capture.PNG";
-	stbi_set_flip_vertically_on_load(true);  
+	std::string filename = "resources/textures/KuwaharaFilter/image.jpg";
 	std::cout << "Reading image..." << std::endl;
 
 	unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nChannels, 0);
@@ -225,7 +231,7 @@ void FFT::InitBuffers2D()
 
 	glGenTextures(1, &inputTexture);
 	glBindTexture(GL_TEXTURE_2D, inputTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -259,13 +265,16 @@ void FFT::Load() {
 }
 
 void FFT::RenderGUI() {
+
+	ImPlot::ShowDemoWindow();
+
 	bool open = false;
     ImGui::Begin("Parameters : ", &open);
-	ImGui::SetWindowSize(ImVec2((float)800, (float)600));
-	
+	ImGui::SetWindowSize(ImVec2((float)1400, (float)1080));
     ImGui::Checkbox("2D", &mode);
 	if(!mode) //1D
 	{
+		ImGui::DragInt("Num Frequencies", &numFrequencies, 1, 0, 1000);
 		if(ImGui::Button("Regenerate"))
 		{
 			InitBuffers1D();
@@ -286,50 +295,30 @@ void FFT::RenderGUI() {
 		{
 			DoIDFT1D();
 		}
-		// ImGui::PlotConfig conf;
-		// conf.values.ys = inputFloat1D.data();
-		// conf.values.count = size1D;
-		// conf.scale.min = -1;
-		// conf.scale.max = 1;
-		// conf.tooltip.show = true;
-		// conf.tooltip.format = "x=%.2f, y=%.2f";
-		// conf.grid_y.show = true;
-		// conf.frame_size = ImVec2((float)windowWidth, 300);
-		// conf.line_thickness = 2.f;
-		// ImGui::Plot("plot", conf);
 
-		// if(dftOutputFloat1D.size() > 0)
-		// {
-		// 	ImGui::PlotConfig confDftOut;
-		// 	// confDftOut.values.xs = inputXAxis.data();
-		// 	confDftOut.values.ys = dftOutputFloat1D.data();
-		// 	confDftOut.values.count = (int)dftOutputFloat1D.size()/2;
-		// 	confDftOut.scale.min = -1;
-		// 	confDftOut.scale.max = 1;
-		// 	confDftOut.tooltip.show = true;
-		// 	confDftOut.tooltip.format = "x=%.2f, y=%.2f";
-		// 	// confDftOut.grid_x.show = true;
-		// 	confDftOut.grid_y.show = true;
-		// 	confDftOut.frame_size = ImVec2((float)windowWidth, 300);
-		// 	confDftOut.line_thickness = 2.f;
-		// 	ImGui::Plot("plot", confDftOut);
-		// }
-		// if(idftOutputFloat1D.size() > 0)
-		// {
-		// 	ImGui::PlotConfig confIdftOut;
-		// 	// confIdftOut.values.xs = inputXAxis.data();
-		// 	confIdftOut.values.ys = idftOutputFloat1D.data();
-		// 	confIdftOut.values.count = (int)idftOutputFloat1D.size();
-		// 	confIdftOut.scale.min = -1;
-		// 	confIdftOut.scale.max = 1;
-		// 	confIdftOut.tooltip.show = true;
-		// 	confIdftOut.tooltip.format = "x=%.2f, y=%.2f";
-		// 	// confIdftOut.grid_x.show = true;
-		// 	confIdftOut.grid_y.show = true;
-		// 	confIdftOut.frame_size = ImVec2((float)windowWidth, 300);
-		// 	confIdftOut.line_thickness = 2.f;
-		// 	ImGui::Plot("plot", confIdftOut);
-		// }
+		if (ImPlot::BeginPlot("Input Plot")) {
+			ImPlot::SetupAxes("x","y");
+			ImPlot::PlotLine("Input", inputXAxis.data(), inputFloat1D.data(), inputFloat1D.size());
+			ImPlot::EndPlot();
+		}		
+
+		if(dftOutputFloat1D.size() > 0)
+		{
+			if (ImPlot::BeginPlot("Output Plots")) {
+				ImPlot::SetupAxes("x","y");
+				ImPlot::PlotBars("Output", outputXAxis.data(), dftOutputFloat1D.data(), outputXAxis.size(), 1);
+				ImPlot::EndPlot();
+			}
+		}
+
+		if(idftOutputFloat1D.size() > 0)
+		{
+			if (ImPlot::BeginPlot("Inverse Plots")) {
+				ImPlot::SetupAxes("x","y");
+				ImPlot::PlotLine("Inverse", inputXAxis.data(), idftOutputFloat1D.data(), idftOutputFloat1D.size());
+				ImPlot::EndPlot();
+			}
+		}
 	}
 	else
 	{
@@ -339,9 +328,24 @@ void FFT::RenderGUI() {
 		if(ImGui::Button("IFFT")){
 			DoIFFT2D();
 		} 
-		ImGui::Image((void*)(intptr_t)inputTexture,  ImVec2(256,256));
-		ImGui::Image((void*)(intptr_t)frequencyTexture,  ImVec2(256,256));
-		ImGui::Image((void*)(intptr_t)outputTexture,  ImVec2(256,256));
+		ImGui::Image((void*)(intptr_t)inputTexture,  ImVec2(400,400)); ImGui::SameLine();
+		ImGui::Image((void*)(intptr_t)frequencyTexture,  ImVec2(400,400));
+		ImGui::Image((void*)(intptr_t)outputTexture,  ImVec2(400,400));
+
+		ImGui::Text("High Frequency");
+		ImGui::SliderFloat("High Filter", &HighFilter, 0, 1);
+
+		ImGui::Text("Low Frequency");
+		ImGui::SliderFloat("Low Filter", &LowFilter, 0, 1);
+
+		if(ImGui::Button("Apply Filter"))
+		{
+			FilterFFT2D();
+		}
+		if(ImGui::Button("Apply IFFT"))
+		{
+			DoIFFT2D();
+		}
 	}
 
     ImGui::End();
@@ -354,9 +358,20 @@ void FFT::DoFFT1D()
 	dftOutput1D = std::vector<complex> (size1D);
 
 	FFT1D(input1D, dftOutput1D);
+
+	int maxX = 0;
 	for(int i=0; i<input1D.size()/2; i++)
 	{
 		dftOutputFloat1D[i] = ((float)std::abs(dftOutput1D[i]) * 2) / (float)size1D;
+		if(dftOutputFloat1D[i] > 1e-3f)
+		{
+			maxX = std::max(i, maxX);
+		}
+	}
+	outputXAxis.resize(maxX);
+	for(int i=0; i<maxX; i++)
+	{
+		outputXAxis[i] = i;
 	}
 }
 
@@ -403,6 +418,8 @@ void FFT::DoIDFT1D()
 
 void FFT::DoFFT2D()
 {
+	auto start = high_resolution_clock::now();
+
 	std::cout << "Doing FFT..." << std::endl;
 	FFT2D(input2D, dftOutput2D);
 
@@ -410,9 +427,10 @@ void FFT::DoFFT2D()
 	int halfHeight = height/2;
 	for(int i=0; i<dftOutput2D.size(); i++)
 	{
-
 		int x = i % width;
 		int y = i / width;
+
+		
 		int targetX = x, targetY=y, targetPixel;
 		if(x < halfWidth) targetX = halfWidth - x - 1;
 		else targetX = std::max(0, std::min(width- 1, (width - x) + halfWidth));
@@ -424,8 +442,10 @@ void FFT::DoFFT2D()
 		dftOutputFloat2D[targetPixel] = ((float)std::abs(dftOutput2D[i])) / (float)width;
 	}
 
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start);
+	std::cout << duration.count() << std::endl;
 
-	
 	glBindTexture(GL_TEXTURE_2D, frequencyTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, dftOutputFloat2D.data());
     
@@ -434,6 +454,8 @@ void FFT::DoFFT2D()
 
 void FFT::DoIFFT2D()
 {
+	auto start = high_resolution_clock::now();
+
 	iFFT2D(dftOutput2D, idftOutput2D);
 	
 	for(int i=0; i<input2D.size(); i++)
@@ -441,13 +463,44 @@ void FFT::DoIFFT2D()
 		idftOutputFloat2D[i] = (float)idftOutput2D[i].real();
 	}
 
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start);
+	std::cout << duration.count() << std::endl;
+
 	glBindTexture(GL_TEXTURE_2D, outputTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, idftOutputFloat2D.data());
     
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void FFT::FilterFFT2D()
+{
+	int halfWidth = width/2;
+	int halfHeight = height/2;
+	
+	for(int i=0; i<dftOutput2D.size(); i++)
+	{
+		int x = i % width;
+		int y = i / width;
+		x -= halfWidth;
+		y -= halfHeight;
 
+		int length2 = (x * x + y * y);
+		float length2Normalized = (float)length2 / (float)(halfWidth * halfWidth);
+		if(length2Normalized < HighFilter)
+		{
+			dftOutputFloat2D[i] = 0;
+			dftOutput2D[i] = std::complex(0);
+		}		
+	}
+
+
+	
+	glBindTexture(GL_TEXTURE_2D, frequencyTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, dftOutputFloat2D.data());
+    
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
 
 void FFT::Render() {
 	// Sort();

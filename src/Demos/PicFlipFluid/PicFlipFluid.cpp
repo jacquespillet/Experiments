@@ -232,8 +232,8 @@ void PicFlipFluid::Reset()
 {
 	gridDimensions = {gridSize + 1, gridSize + 1, gridSize + 1};
 	gridCellDimensions = {gridSize, gridSize, gridSize};
-    boundsMin = {-1, -1, -1};
-    boundsMax = {1, 1, 1};
+    boundsMin = {-3, -3, -3};
+    boundsMax = {3, 3, 3};
     bounds_size =  boundsMax - boundsMin;
     cell_size  = bounds_size / glm::vec3(gridCellDimensions);
     numCells = gridDimensions.x * gridDimensions.y * gridDimensions.z;

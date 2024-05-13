@@ -315,8 +315,9 @@ void Ocean_FFT::IFFTGPU()
 	glUniform1i(glGetUniformLocation(normalsComputeShader, "normals"), 1); //program must be active
 	glBindImageTexture(1, normalTexture, 0, GL_FALSE, 0, GL_READ_WRITE , GL_RGBA32F);
 	
+	glUniform1f(glGetUniformLocation(normalsComputeShader, "heightScale"), height);
 	glUniform1i(glGetUniformLocation(normalsComputeShader, "texSize"), resolution); //program must be active
-	
+
 	glDispatchCompute(group, group, 1);
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -333,7 +334,7 @@ void Ocean_FFT::Load() {
 	oceanShader = GL_Shader("shaders/Ocean_FFT/ocean.vert", "", "shaders/Ocean_FFT/ocean.frag");
 	oceanMesh = PlaneMesh(planeSize, planeSize, resolution * 3, resolution * 3);
 
-	lightDirection = glm::normalize(glm::vec3(1,1 ,1));
+	lightDirection = glm::normalize(glm::vec3(-1,1 ,-1));
 
 	t = clock();
 }
@@ -343,13 +344,16 @@ void Ocean_FFT::RenderGUI() {
     ImGui::Begin("Parameters : ", &open);
 	
 	ImGui::Text("Visuals");
+
+	ImGui::DragFloat3("Light Direction", glm::value_ptr(lightDirection), 0.01f, -1, 1);
+
 	ImGui::SliderFloat("metallic", &metallic, 0.0f, 1.0f); 
 	ImGui::SliderFloat("roughness", &roughness, 0.0f, 1.0f); 
 	ImGui::SliderFloat("lightIntensity", &lightIntensity, 0.1f, 5.0f); 
 	ImGui::SliderFloat("ambient", &ambient, 0.0f, 1.0f); 
 	
 	ImGui::Text("Height Field");
-	ImGui::SliderFloat("height", &height, 0.1f, 10.0f); 
+	ImGui::SliderFloat("height", &height, 0.1f, 50.0f); 
 
     ImGui::End();
 

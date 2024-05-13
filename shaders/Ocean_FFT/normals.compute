@@ -5,16 +5,43 @@ layout (local_size_x = 16, local_size_y = 16) in;
 layout (binding = 0, rgba32f) uniform image2D displacement;
 layout (binding = 1, rgba32f) uniform image2D normals;
 
-uniform int N;
+uniform int texSize;
+uniform float heightScale;
+
+vec3 calculateNormal(ivec2 texCoord) {
+    float center = imageLoad(displacement, texCoord).z;
+    float left = imageLoad(displacement, texCoord - ivec2(1.0, 0.0)).z;
+    float right = imageLoad(displacement, texCoord + ivec2(1.0, 0.0)).z;
+    float bottom = imageLoad(displacement, texCoord - ivec2(0.0, 1.0)).z;
+    float top = imageLoad(displacement, texCoord + ivec2(0.0, 1.0)).z;
+    
+    // Compute partial derivatives of height
+    float dX = (right - left) * 0.5;
+    float dY = (top - bottom) * 0.5;
+    
+    // Calculate normal
+    vec3 normal = normalize(vec3(-dX, 1.0, -dY));
+    
+    return normal;
+}
 
 void main(void)
 {
+    // // Calculate normal using central differences
+    // vec3 normal = calculateNormal(ivec2(gl_GlobalInvocationID.xy));
+    
+    // // Encode normal to [0, 1] range
+    
+    // // Output the result
+    // imageStore(normals, ivec2(gl_GlobalInvocationID.xy), vec4(normal, 1.0));
 	ivec2 x = ivec2(gl_GlobalInvocationID.xy);
 	float h = imageLoad(displacement, x).r;
 	
-	vec3 normal = vec3(0,1,0);
-	normal.x = imageLoad(displacement, x + ivec2(1,0)).z - imageLoad(displacement, x - ivec2(1,0)).z;    
-	normal.y = imageLoad(displacement, x - ivec2(0,1)).z - imageLoad(displacement, x + ivec2(0, 1)).z;    
-	imageStore(normals, x, vec4(normalize(normal), 1));
+	vec3 normal = vec3(0,0.5,0);
+	normal.x = (heightScale * imageLoad(displacement, x + ivec2(1,0)).z - heightScale * imageLoad(displacement, x - ivec2(1,0)).z);
+	normal.z = (heightScale * imageLoad(displacement, x - ivec2(0,1)).z - heightScale * imageLoad(displacement, x + ivec2(0, 1)).z);
+	normal = normalize(normal);
+    normal = normal * 0.5 + 0.5;
+	imageStore(normals, x, vec4(normal, 1));	
 }
 

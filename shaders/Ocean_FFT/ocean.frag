@@ -63,38 +63,40 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float _roughness)
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0)
 {
-    return F0 + (max(vec3(1.0 - _roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 } 
 
-void BSDF(vec3 V, vec3 L, vec3 normal, vec3 finalColor, vec3 radiance, out vec3 diffuse, out vec3 specular, float _roughness)
+void BSDF(vec3 V, vec3 L, vec3 normal, vec3 albedo, vec3 radiance, out vec3 Lo)
 {
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, finalColor, metallic);
+    F0 = mix(F0, albedo, metallic);
 
     vec3 H = normalize(V + L);
     
    // cook-torrance brdf
-    float NDF = DistributionGGX(normal, H, _roughness);
-    float G   = GeometrySmith(normal, V, L, _roughness);
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
-    
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;	  
-    
+    float NDF = DistributionGGX(normal, H, roughness);
+    float G   = GeometrySmith(normal, V, L, roughness);
+    vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+
     vec3 numerator    = NDF * G * F;
-    float denominator = 4.0 * max(dot(normal, V), 0.0) * max(dot(normal, L), 0.0);
-    specular     = (numerator / max(denominator, 0.001)) * radiance;
-    diffuse = (kD * finalColor / PI) * radiance;
+    float denominator = 4.0 * max(dot(normal, V), 0.0) * max(dot(normal, L), 0.0) + 0.0001;
+    vec3 specular     = numerator / denominator;
+
+    vec3 kD = vec3(ambient);
+    float NdotL = max(dot(normal, L), 0.0);        
+    // Lo = vec3(NdotL) * radiance * albedo;
+    Lo = (kD * albedo / PI + specular) * radiance * NdotL; 
 }
 
 void main()
 {		
     vec3 waterColor = vec3(0.1, 0.2, 0.7);
 
-    vec3 finalNormal = texture(normalTexture, fragUv).rgb;
+    vec3 finalNormal = normalize(2.0 * (texture(normalTexture, fragUv).rgb - 0.5));
+    // finalNormal = vec3(0, 1, 0);
+
     vec3 V = normalize(cameraPosition - fragWorldPos);
     
     vec3 R = reflect(-V, finalNormal); 
@@ -102,29 +104,21 @@ void main()
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, waterColor, metallic);
 
-    vec3 Lo = vec3(0.0);
         
-
-    vec3 L;
-    L = -lightDirection;    
     vec3 radiance = lightIntensity * vec3(1,1,1);        
-    vec3 specular;
-    vec3 diffuse;
-    BSDF(V, L, finalNormal, waterColor, radiance, diffuse, specular, roughness);
-    float NdotL = max(dot(finalNormal, L), 0.0);                
-    Lo += (diffuse + specular) * NdotL; 
 
+    vec3 Lo = vec3(0.0);
+    vec3 L = normalize(-lightDirection);    
+    BSDF(V, L, finalNormal, waterColor, radiance, Lo);
     
-    vec3 L2 = vec3(1, -1, 1);    
-    BSDF(V, L, finalNormal, waterColor, radiance, diffuse, specular, roughness);
-    float NdotL2 = max(dot(finalNormal, L2), 0.0);                
-    Lo += (diffuse + specular) * NdotL2; 
+    vec3 Lo2 = vec3(0);
+    vec3 L2 = normalize(vec3(1, 1, 1));    
+    BSDF(V, L2, finalNormal, waterColor, radiance, Lo2);
     
-    vec3 ambientColor =vec3(ambient) * waterColor;
-    vec3 finalColor = ambientColor + Lo;
+    vec3 finalColor = Lo +  Lo2;
     float gamma = 2.2;
     finalColor = pow(finalColor, vec3(1.0/gamma));
     outputColor = vec4(finalColor, 1.0f);
-
+    // outputColor.xyz = finalNormal;
 
 }

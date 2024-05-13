@@ -48,6 +48,8 @@ public :
     void DoFFT2D();
     void DoIFFT2D();
 
+    void FilterFFT2D();
+
     //false = 1d, true =  2d
     bool mode = false;
 
@@ -63,6 +65,7 @@ private:
 	std::vector<complex> idftOutput1D;
 	std::vector<complex> dftOutput1D;
 	std::vector<float> inputXAxis;
+	std::vector<float> outputXAxis;
 	std::vector<float> inputFloat1D;
 	std::vector<float> dftOutputFloat1D;
 	std::vector<float> idftOutputFloat1D;
@@ -80,7 +83,11 @@ private:
     GLuint frequencyTexture;
     GLuint inputTexture;
     GLuint outputTexture;
-    
+    float LowFilter = 1;
+    float HighFilter = 0;
+
+    // 
+    std::vector<complex> odd, even;
 
 
 	

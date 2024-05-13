@@ -11,6 +11,7 @@ uniform mat4 modelViewProjectionMatrix;
 
 uniform vec3 cameraPosition;
 uniform vec3 lightDirection;
+uniform float heightScale;
 
 out vec3 fragWorldPos;
 out vec3 fragNormal;
@@ -34,7 +35,7 @@ void main()
 	samplePosition /= (size);
 	
 
-	float height = texture(displacementTexture, samplePosition).r;
+	float height = texture(displacementTexture, samplePosition).r * heightScale;
 	// float height = 0;
 	
 	vec3 newPosition = position+ vec3(0, height, 0);

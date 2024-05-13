@@ -112,7 +112,7 @@ void main()
     vec3 posEye = getEyePos(fragUv);
     vec3 worldPos = (iv * vec4(posEye, 1)).xyz;
 
-    vec2 texelSize = vec2(1.0f/1280.0f, 1.0f/720.0f);
+    vec2 texelSize = vec2(1.0f/1920.0f, 1.0f/1080.0f);
 
     vec3 ddx = getEyePos(fragUv + vec2(texelSize.x, 0)) - posEye;
     vec3 ddx2 = posEye - getEyePos(fragUv + vec2(-texelSize.x, 0));
