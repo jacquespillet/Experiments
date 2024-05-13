@@ -83,8 +83,13 @@ Here's a little write up about it
 
 Implementation of 1D and 2D fourier transform and inverse fast fourier transform.
 
-![FFT]()
-![FFT]()
+![FFT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/FFT_1d.PNG?raw=true)
+
+This shows a signal (Top plot) that gets transformed in frequency space (Middle plot), and reconstructed using inverse fourier transform (Bottom Plot)
+
+![FFT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/FFT_2d.PNG?raw=true)
+
+This shows an image input with its Fourier transform on the right, and the reconstructed image at the bottom.
 
 
 ## [Ocean FFT]()
@@ -93,7 +98,7 @@ This is an implementation of an ocean simulation with fourier transform, based o
 
 [Here]() is a little write up about the implementation
 
-![OceanFFT]()
+![OceanFFT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Ocean.png?raw=true)
 ![OceanFFT]()
 
 
@@ -108,7 +113,7 @@ This is an implementation of Pic-Flip fluid simulation
 ![PicFlip]()
 ![PicFlip]()
 
-## [Decals]()
+## [Decals](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Decals.png?raw=true)
 
 This is an implementation of deferred decals.
 
@@ -121,19 +126,17 @@ This is an implementation of deferred decals.
 
 This is a simple path tracer, based on Demofox's series on path tracing.
 
-![PathTrace]()
+![PathTrace](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PathTrace.png?raw=true)
 
 ## [Tiled Rendering]()
 
 This is an implementation of Clustered and Forward+ rendering, with performance comparisons with forward and deferred.
 
-![Tiled]()
-![Tiled]()
-![Tiled]()
-![Tiled]()
-
+![Tiled](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Clustered_3.png?raw=true)
 
 ## [Screen Space Ambient Occlusion]()
+
+![SSAO](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SSAO_1.png?raw=true)
 
 ## [Screen Space Reflections]()
 
