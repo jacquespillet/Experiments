@@ -12,7 +12,7 @@ Not all the experiments are successfull, some are still WIP, I may come back to 
 ## Commands : 
 ```
 ### Clone the repo and checkout to the latest branch
-git clone --recursive https://github.com/jacquespillet/gpupt_blog.git
+git clone --recursive https://github.com/jacquespillet/Experiments.git
 cd Experiments
 git checkout origin/master
 
@@ -38,7 +38,8 @@ This is a simple implementation of voxel cone tracing.
 
 Here's a little write up about that technique and its implementation.
 
-![VXGI]()
+![VXGI](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/VXGI_1.png?raw=true)
+![VXGI](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/VXGI_0.png?raw=true)
 
 ## [Reflective Shadow Map]()
 
@@ -51,7 +52,7 @@ This is an incomplete implementation of Light Propagation Volumes.
 
 Here's a little write up about the implementation.
 
-![LPV]()
+![LPV](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/LPV_2.png?raw=true)
 
 
 ## [Spherical Harmonics Viewer]()
