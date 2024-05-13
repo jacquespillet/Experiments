@@ -23,7 +23,6 @@ public :
 
     void Reset();
     void UpdateParticles();
-    void ClearAccelerations();
 private:
     clock_t t;
     float deltaTime;
@@ -34,7 +33,6 @@ private:
     GL_Camera cam;
 
     GLint nbodiesShader;
-    GLint clearAccelerationsShader;
     GLuint particleBuffer[2];
     
     int bufferSize = 32768;
@@ -65,5 +63,7 @@ private:
     float timestep = 0.005f;
     float maxMass = 1;
     float pointSize = 1;
+    float MaxVelocity = 10;
+
 
 };

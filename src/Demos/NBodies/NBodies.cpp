@@ -1,8 +1,8 @@
 #include "NBodies.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
@@ -10,7 +10,7 @@
 
 #include "imgui.h"
 #include "GL_Helpers/Util.hpp"
-
+#include <glm/gtc/type_ptr.hpp>
 NBodies::NBodies() {
 }
 
@@ -18,7 +18,6 @@ NBodies::NBodies() {
 void NBodies::InitBuffers()
 {
     CreateComputeShader("shaders/NBodies/nbodies.compute", &nbodiesShader);	
-    CreateComputeShader("shaders/NBodies/clearAcceleration.compute", &clearAccelerationsShader);	
 	pointsShader = GL_Shader("shaders/NBodies/points.vert", "shaders/NBodies/points.geom", "shaders/NBodies/points.frag");
 
 	glGenBuffers(2, (GLuint*)&particleBuffer);
@@ -84,12 +83,18 @@ void NBodies::RenderGUI() {
 		ImGui::EndCombo();
 	}
 
-	ImGui::SliderFloat("softening Factor", &softeningFactor, 0.01f, 0.6f);
-	ImGui::SliderFloat("damping", &damping, 0.7f, 1.0f);
+	ImGui::DragInt("Particle Count", &bufferSize, 10);
+	ImGui::SliderFloat("softening Factor", &softeningFactor, 0.01f, 0.1f);
+	ImGui::SliderFloat("damping", &damping, 0.8f, 1.0f);
 	ImGui::SliderFloat("timestep", &timestep, 0.001f, 0.1f);
 	ImGui::SliderFloat("maxMass", &maxMass, 1.0f, 100.0f);
 	ImGui::SliderFloat("pointSize", &pointSize, 1.0, 10.0f);
-	
+	ImGui::DragFloat("maxVelocity", &MaxVelocity, 1.0f, 1.0, 10000.0f);
+
+	if(ImGui::Button("Reset"))
+	{
+		Reset();
+	}
     ImGui::End();
 }
 
@@ -340,19 +345,12 @@ void NBodies::UpdateParticles()
 	glUniform1f(glGetUniformLocation(nbodiesShader, "softeningFactor"), softeningFactor);
 	glUniform1f(glGetUniformLocation(nbodiesShader, "damping"), damping);
 	glUniform1f(glGetUniformLocation(nbodiesShader, "timestep"), timestep);
+	glUniform1f(glGetUniformLocation(nbodiesShader, "maxVelocity"), MaxVelocity);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.glTex);
 	glUniform1i(glGetUniformLocation(nbodiesShader, "particleTexture"), 0);
 	
-	glDispatchCompute(bufferSize / 1024 + 1, 1, 1);
-	glMemoryBarrier( GL_ALL_BARRIER_BITS );	
-}
-
-void NBodies::ClearAccelerations()
-{
-	glUseProgram(clearAccelerationsShader);
-	BindSSBO(clearAccelerationsShader, particleBuffer[pingPongInx], "ParticlesBuffer", 10);
 	glDispatchCompute(bufferSize / 1024 + 1, 1, 1);
 	glMemoryBarrier( GL_ALL_BARRIER_BITS );	
 }
@@ -363,7 +361,6 @@ void NBodies::Render() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
 	
-	// ClearAccelerations();
 	UpdateParticles();
 	
 	glUseProgram(pointsShader.programShaderObject);

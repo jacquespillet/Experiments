@@ -2,7 +2,8 @@
 	
 #include <fstream>
 #include <sstream>
-#include <GL/glew.h>
+#include <glad/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 GL_Shader::GL_Shader()
 {
 	compiled = false; 

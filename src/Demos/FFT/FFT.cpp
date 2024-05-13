@@ -1,8 +1,8 @@
 #include "FFT.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>

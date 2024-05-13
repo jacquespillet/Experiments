@@ -1,15 +1,15 @@
 #include "LPV.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
-
+#include <glm/gtc/type_ptr.hpp>
 bool LPV::InitReflectiveShadowMap()
 {
     ReflectiveShadowMap.renderShader = GL_Shader("shaders/LPV/gBuffer.vert", "", "shaders/LPV/gBuffer.frag");
@@ -52,7 +52,7 @@ bool LPV::InitReflectiveShadowMap()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
     
 	glBindTexture(GL_TEXTURE_2D, 0);
     
@@ -130,7 +130,7 @@ bool LPV::InitShadowMap()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
     
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap.depthTexture.glTex, 0);
 	
@@ -570,6 +570,7 @@ void LPV::Render() {
         glm::mat4 viewMatrix = glm::lookAt(lightDirection, glm::vec3(0,0,0), glm::vec3(0,1,0));
         glm::mat4 projectionMatrix = glm::ortho	<float>(-orthoSize, orthoSize, -orthoSize, orthoSize, -500, 500);
         ReflectiveShadowMap.depthViewProjectionMatrix = projectionMatrix * viewMatrix;
+        shadowMap.depthViewProjectionMatrix = ReflectiveShadowMap.depthViewProjectionMatrix;
         DrawSceneToShadowMap();
         DrawSceneToReflectiveShadowMap();
         

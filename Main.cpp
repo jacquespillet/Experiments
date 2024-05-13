@@ -1,12 +1,14 @@
 #define STB_IMAGE_IMPLEMENTATION
+#define GLM_ENABLE_EXPERIMENTAL
 
 #include "Common.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "implot.h"
 
 #include <stdio.h>
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 
@@ -296,17 +298,18 @@ public:
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT , GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT , GLFW_FALSE);
-        window = glfwCreateWindow(1280, 720, "Testing", NULL, NULL);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        
+        window = glfwCreateWindow(1920, 1080, "Testing", NULL, NULL);
         if (window == NULL)
             return 1;
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1); // Enable vsync
 
-        bool err = glewInit() != GLEW_OK;
-        if (err)
-        {
-            fprintf(stderr, "Failed to initialize OpenGL loader!\n");
-            return 1;
+        int version = gladLoadGL(glfwGetProcAddress);
+        if (version == 0) {
+            printf("Failed to initialize OpenGL context\n");
+            exit(0);
         }
 
         glfwSetCursorPosCallback(window, CursorPositionCallback);
@@ -335,6 +338,7 @@ public:
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
+        ImPlot::CreateContext();
         io = ImGui::GetIO(); (void)io;
 
         // Setup Dear ImGui style
@@ -363,8 +367,6 @@ public:
                 if(err==GL_STACK_UNDERFLOW) std::cout << "GL_STACK_UNDERFLOW"<<std::endl;
                 if(err==GL_OUT_OF_MEMORY) std::cout << "GL_OUT_OF_MEMORY"<<std::endl;
                 if(err==GL_INVALID_FRAMEBUFFER_OPERATION) std::cout << "GL_INVALID_FRAMEBUFFER_OPERATION"<<std::endl;
-                if(err==GL_CONTEXT_LOST) std::cout << "GL_CONTEXT_LOST"<<std::endl;
-                if(err==GL_TABLE_TOO_LARGE) std::cout << "GL_TABLE_TOO_LARGE1"<<std::endl;
             }
             
             glfwPollEvents();
@@ -402,6 +404,7 @@ public:
         // Cleanup
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
+        ImPlot::DestroyContext();
         ImGui::DestroyContext();
 
         glfwDestroyWindow(window);
@@ -430,123 +433,124 @@ private:
 
 
     void RenderGUI() {
-        {
-            ImGui::Begin("Demos : "); 
-            
-            if(ImGui::Button("Voxel cone tracing", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(1);
-            }
-            if(ImGui::Button("Reflective Shadow Maps", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(2);
-            }
-            if(ImGui::Button("Light Propagation Volumes", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(4);
-            }
-            if(ImGui::Button("Spherical Harmonics viewer", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(5);
-            }
-            if(ImGui::Button("Bitonic Sort", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(6);
-            }
-            if(ImGui::Button("N-Bodies", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(7);
-            }
-            if(ImGui::Button("Fast Fourier Transform", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(8);
-            }
-            if(ImGui::Button("Ocean FFT", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(9);
-            }
-            if(ImGui::Button("Pic-Flip fluid", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(10);
-            }
-            if(ImGui::Button("Deferred Decals", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(11);
-            }
-            if(ImGui::Button("Path Tracer", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(12);
-            }
-            if(ImGui::Button("Tiled Rendering", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(14);
-            }
-            if(ImGui::Button("Screen Space Ambient Occlusion", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(15);
-            }
-            if(ImGui::Button("Screen Space Reflections", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(16);
-            }
-            if(ImGui::Button("Order Independant Transparency", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(17);
-            }
-            if(ImGui::Button("Cascaded Shadow Mapping", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(18);
-            }
-            if(ImGui::Button("Shell Fur", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(19);
-            }
-            if(ImGui::Button("Sparse Virtual Texturing", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(21);
-            }
-            if(ImGui::Button("Screen Space Directional Occlusion", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(22);
-            }
-            if(ImGui::Button("Screen Space Subsurface Scattering", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(24);
-            }
-            if(ImGui::Button("Post Processing", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(25);
-            }
-            if(ImGui::Button("Mesh Manipulation", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(27);
-            }
+        ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(200, 720), ImGuiCond_Always);
+        
+        ImGui::Begin("Demos : "); 
+        
+        if(ImGui::Button("Voxel cone tracing")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(1);
+        }
+        if(ImGui::Button("Reflective Shadow Maps")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(2);
+        }
+        if(ImGui::Button("Light Propagation Volumes")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(4);
+        }
+        if(ImGui::Button("Spherical Harmonics viewer")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(5);
+        }
+        if(ImGui::Button("Bitonic Sort")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(6);
+        }
+        if(ImGui::Button("N-Bodies")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(7);
+        }
+        if(ImGui::Button("Fast Fourier Transform")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(8);
+        }
+        if(ImGui::Button("Ocean FFT")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(9);
+        }
+        if(ImGui::Button("Pic-Flip fluid")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(10);
+        }
+        if(ImGui::Button("Deferred Decals")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(11);
+        }
+        if(ImGui::Button("Path Tracer")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(12);
+        }
+        if(ImGui::Button("Tiled Rendering")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(14);
+        }
+        if(ImGui::Button("Screen Space Ambient Occlusion")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(15);
+        }
+        if(ImGui::Button("Screen Space Reflections")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(16);
+        }
+        if(ImGui::Button("Order Independant Transparency")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(17);
+        }
+        if(ImGui::Button("Cascaded Shadow Mapping")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(18);
+        }
+        if(ImGui::Button("Shell Fur")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(19);
+        }
+        if(ImGui::Button("Sparse Virtual Texturing")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(21);
+        }
+        if(ImGui::Button("Screen Space Directional Occlusion")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(22);
+        }
+        if(ImGui::Button("Screen Space Subsurface Scattering")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(24);
+        }
+        if(ImGui::Button("Post Processing")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(25);
+        }
+        if(ImGui::Button("Mesh Manipulation")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(27);
+        }
 
-            ImGui::Text("WIP"); 
-            if(ImGui::Button("SVO", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(26);
-            }
-            if(ImGui::Button("Boids", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(13);
-            }
-            if(ImGui::Button("Imperfect Shadow Maps", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(3);
-            }
-            if(ImGui::Button("Displacement mapping", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(20);
-            }
-            if(ImGui::Button("Kuwahara Filter", ImVec2(100, 20))) {
-                demoManager.ClearDemo();
-                demoManager.LoadDemo(23);
-            }
-            demoManager.RenderGUI();
+        ImGui::Text("WIP"); 
+        if(ImGui::Button("SVO")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(26);
+        }
+        if(ImGui::Button("Boids")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(13);
+        }
+        if(ImGui::Button("Imperfect Shadow Maps")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(3);
+        }
+        if(ImGui::Button("Displacement mapping")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(20);
+        }
+        if(ImGui::Button("Kuwahara Filter")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(23);
+        }
+        demoManager.RenderGUI();
 
-            ImGui::End();
-        }    
+        ImGui::End();
     }
 };
 

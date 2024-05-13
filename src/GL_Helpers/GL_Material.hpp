@@ -4,7 +4,7 @@
 #include "GL_Shader.hpp"
 #include "GL_Texture.hpp"
 #include <glm/mat4x4.hpp>
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 class GL_Material {
 public:

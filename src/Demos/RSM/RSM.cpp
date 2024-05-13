@@ -1,15 +1,15 @@
 #include "RSM.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
-
+#include <glm/gtc/type_ptr.hpp>
 bool RSM::InitReflectiveShadowMap()
 {
     ReflectiveShadowMap.renderShader = GL_Shader("shaders/rsm/gBuffer.vert", "", "shaders/rsm/gBuffer.frag");
@@ -52,7 +52,7 @@ bool RSM::InitReflectiveShadowMap()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
     
 	glBindTexture(GL_TEXTURE_2D, 0);
     
@@ -263,7 +263,7 @@ void RSM::Load() {
     std::cout << "StandardShaders:Compile: Compiling unlitMeshShader" << std::endl; 
     MeshShader.Compile();      
 
-    MeshesFromFile("resources/models/crytek-sponza/sponza.obj", &Meshes, &Materials);
+    MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
     for(int i=0; i<Meshes.size(); i++)
     {
         Meshes[i]->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));

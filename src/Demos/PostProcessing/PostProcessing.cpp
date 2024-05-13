@@ -1,15 +1,15 @@
 #include "PostProcessing.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
-
+#include <glm/gtc/type_ptr.hpp>
 PostProcess::PostProcess(std::string name, std::string shaderFileName, bool enabled) :name(name), shaderFileName(shaderFileName), enabled(enabled)
 {
     CreateComputeShader(shaderFileName, &shader);
@@ -573,7 +573,7 @@ void PostProcessing::InitGeometryBuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

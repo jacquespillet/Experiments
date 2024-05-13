@@ -1,15 +1,15 @@
 #include "DeferredDecals.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
-
+#include <glm/gtc/type_ptr.hpp>
 DeferredDecals::DeferredDecals() {
 }
 
@@ -165,7 +165,7 @@ void DeferredDecals::InitGeometryBuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,  GL_COMPARE_R_TO_TEXTURE_ARB);
     
 	glBindTexture(GL_TEXTURE_2D, 0);
     
@@ -263,7 +263,7 @@ void DeferredDecals::InitQuad()
 
 void DeferredDecals::InitDecal()
 {
-    decalBox = MeshFromFile("resources/models/suzanne/cube.obj", false, 0);
+    decalBox = MeshFromFile("resources/models/Plane/Plane.obj", false, 0);
     decalBox->SetPos(glm::vec3(0.5, 0.5, 0));
     decalShader = GL_Shader("shaders/DeferredDecals/decal.vert", "", "shaders/DeferredDecals/decal.frag");    
 
@@ -312,7 +312,7 @@ void DeferredDecals::Unload() {
 
 void DeferredDecals::InstantiateDecal()
 {
-    GL_Mesh *newDecal = MeshFromFile("resources/models/suzanne/cube.obj", false, 0);
+    GL_Mesh *newDecal = MeshFromFile("resources/models/Plane/Plane.obj", false, 0);
     newDecal->SetModelMatrix(decalBox->modelMatrix);
     decals.push_back(newDecal);
 }

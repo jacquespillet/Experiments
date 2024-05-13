@@ -21,7 +21,7 @@ public :
     void RightClickUp();
     void Scroll(float offset);
 
-    void showValuesOnConsole();
+    void DownloadValues();
     void Reset();
     void Sort();
 
@@ -39,6 +39,18 @@ private:
     GLuint inBuffer;
     GLuint tmpBuffer;
     int bufferSize = 8192;
+
+    std::vector<uint32_t> bufferCPU;
+    std::vector<uint32_t> Xs;
+
+    bool multiFrame = true;
+    int iteration0 = 0;
+    int iteration1 = 0;
+    void Step();
+    bool done = false;
+    bool started = false;
+    float speed = 1.0f;
+    uint64_t frame=0;
 
     uint32_t BITONIC_BLOCK_SIZE = 512;
     uint32_t TRANSPOSE_BLOCK_SIZE = 16;

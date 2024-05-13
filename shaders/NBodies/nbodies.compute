@@ -27,6 +27,17 @@ uniform int numParticles;
 uniform float softeningFactor;
 uniform float damping;
 uniform float timestep;
+uniform float maxVelocity;
+
+vec3 ClampVector3(vec3 vec, float maxLength)
+{
+   float vecLength = length(vec);
+   vec3 normalizedVec = vec / vecLength;
+   vecLength = min(maxLength, vecLength);
+
+   vec = vecLength * normalizedVec;
+   return vec;
+}
 
 void main() {
    particle particleI = previousParticles[gl_GlobalInvocationID.x];
@@ -34,7 +45,7 @@ void main() {
 
    for(int j=0; j<numParticles; j++)
    {
-      // if(j == gl_GlobalInvocationID.x) continue;
+      if(j == gl_GlobalInvocationID.x) continue;
       
       particle particleJ = previousParticles[j];
 
@@ -51,8 +62,11 @@ void main() {
       }
    }
 
+   particleI.acceleration = ClampVector3(particleI.acceleration, maxVelocity);
+
    particleI.velocity += timestep *  particleI.acceleration * particleI.invMass;
    particleI.velocity *= damping;
+   
    
    particleI.position += timestep *  particleI.velocity;
 

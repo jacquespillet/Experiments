@@ -28,8 +28,8 @@ public :
 
 private:
     clock_t t;
-    float deltaTime;
-    float elapsedTime;
+    float deltaTime=0;
+    float elapsedTime=0;
 
     GL_Camera cam;
 

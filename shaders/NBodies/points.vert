@@ -5,11 +5,11 @@ layout(location = 0) in float dummy;
 struct particle
 {
    vec3 position;
-   float pad0;
+   float r;
    vec3 velocity;
-   float pad1;
+   float g;
    vec3 acceleration;
-   float pad2;
+   float b;
 };
 layout (std430, binding = 10) buffer ParticlesBuffer {
    particle particles [];

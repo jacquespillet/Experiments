@@ -1,14 +1,15 @@
 #include "Ocean_FFT.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 // #include "imgui_plot.h"
 
 Ocean_FFT::Ocean_FFT() {
@@ -314,6 +315,8 @@ void Ocean_FFT::IFFTGPU()
 	glUniform1i(glGetUniformLocation(normalsComputeShader, "normals"), 1); //program must be active
 	glBindImageTexture(1, normalTexture, 0, GL_FALSE, 0, GL_READ_WRITE , GL_RGBA32F);
 	
+	glUniform1i(glGetUniformLocation(normalsComputeShader, "texSize"), resolution); //program must be active
+	
 	glDispatchCompute(group, group, 1);
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -331,6 +334,8 @@ void Ocean_FFT::Load() {
 	oceanMesh = PlaneMesh(planeSize, planeSize, resolution * 3, resolution * 3);
 
 	lightDirection = glm::normalize(glm::vec3(1,1 ,1));
+
+	t = clock();
 }
 
 void Ocean_FFT::RenderGUI() {
@@ -344,16 +349,19 @@ void Ocean_FFT::RenderGUI() {
 	ImGui::SliderFloat("ambient", &ambient, 0.0f, 1.0f); 
 	
 	ImGui::Text("Height Field");
-	ImGui::SliderFloat("height", &height, 0.1f, 3.0f); 
+	ImGui::SliderFloat("height", &height, 0.1f, 10.0f); 
 
     ImGui::End();
+
+	if(ImGui::IsAnyItemActive()) cam.locked=true;
+    else cam.locked=false;
 }
 
 void Ocean_FFT::Render() {
 	clock_t newTime = clock();
     clock_t delta = newTime - t;
     deltaTime = ((float)delta)/CLOCKS_PER_SEC;
-    elapsedTime += deltaTime;
+    elapsedTime	 += deltaTime;
 
 	IFFTGPU();
 	
@@ -369,6 +377,7 @@ void Ocean_FFT::Render() {
 	glUniform1f(glGetUniformLocation(oceanShader.programShaderObject, "roughness"), roughness);
 	glUniform1f(glGetUniformLocation(oceanShader.programShaderObject, "lightIntensity"), lightIntensity);
 	glUniform1f(glGetUniformLocation(oceanShader.programShaderObject, "ambient"), ambient);
+	glUniform1f(glGetUniformLocation(oceanShader.programShaderObject, "heightScale"), height);
 	
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, displacementTexture);

@@ -1,14 +1,15 @@
 #include "MeshManipulation.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 
 void SubdivModel::MoveVertex(int vertexIndex, const glm::vec3& newPosition)
 {
@@ -81,7 +82,7 @@ void MeshManipulation::Load() {
     MeshShader = GL_Shader("shaders/MeshManipulation/MeshShader.vert", "", "shaders/MeshManipulation/MeshShader.frag");
     WireframeShader = GL_Shader("shaders/MeshManipulation/MeshShader.vert", "", "shaders/MeshManipulation/WireframeShader.frag");
 
-    MeshesFromFile("resources/models/suzanne/cube.obj", &Meshes, &Materials);
+    MeshesFromFile("resources/models/suzanne/Suzanne.gltf", &Meshes, &Materials);
     
     lightDirection = glm::normalize(glm::vec3(0, -1, 1));
 
@@ -242,7 +243,7 @@ GL_Mesh *MeshManipulation::ApplySubdivision(SubdivModel& model)
         for(auto edgeIndex : v.edges)
         {
             auto &edge = model.edges[edgeIndex];
-            averageEdgeMid += 0.5 * (oldPositions[edge.lowVertex] + oldPositions[edge.highVertex]);
+            averageEdgeMid += 0.5f * (oldPositions[edge.lowVertex] + oldPositions[edge.highVertex]);
         }
         averageEdgeMid /= static_cast<float>(v.edges.size());
 

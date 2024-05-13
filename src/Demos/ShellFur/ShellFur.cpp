@@ -1,15 +1,15 @@
 #include "ShellFur.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
-
+#include <glm/gtc/type_ptr.hpp>
 ShellFur::ShellFur() {
 }
 
@@ -74,8 +74,8 @@ void ShellFur::Load() {
 
     MeshShader = GL_Shader("shaders/ShellFur/MeshShader.vert", "", "shaders/ShellFur/MeshShader.frag");
     
-    Mesh = MeshFromFile("resources/models/head/head_smooth.obj",false, 0);
-    // Mesh = MeshFromFile("resources/models/suzanne/cube.obj", false, 0);
+    //Mesh = MeshFromFile("resources/models/head/head_smooth.obj",false, 0);
+    Mesh = MeshFromFile("resources/models/suzanne/Suzanne.gltf", false, 0);
     Material = new GL_Material();
     Mesh->material = Material;
 

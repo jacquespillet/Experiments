@@ -1,8 +1,8 @@
 #include "PicFlipFluid.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
@@ -10,8 +10,16 @@
 
 #include "imgui.h"
 #include "GL_Helpers/Util.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/glm.hpp>
 
 PicFlipFluid::PicFlipFluid() {
+}
+
+float lerp(float a, float b, float t)
+{
+	return (1.0f - t) * a + t * b;
 }
 
 void PicFlipFluid::InitShaders()
@@ -86,7 +94,7 @@ void PicFlipFluid::InitFramebuffer()
     //Flux
 	glGenTextures(1, &colorTexture);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1280, 720, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -95,18 +103,18 @@ void PicFlipFluid::InitFramebuffer()
     //Depth
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 1280, 720, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, windowWidth, windowHeight, 0,GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
     
     //Depth
 	glGenTextures(1, &depthTexture1);
 	glBindTexture(GL_TEXTURE_2D, depthTexture1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1280, 720, 0, GL_RED, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -115,7 +123,7 @@ void PicFlipFluid::InitFramebuffer()
     //Depth
 	glGenTextures(1, &horizontalBlurTexture);
 	glBindTexture(GL_TEXTURE_2D, horizontalBlurTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1280, 720, 0, GL_RED, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -124,7 +132,7 @@ void PicFlipFluid::InitFramebuffer()
     //Depth
 	glGenTextures(1, &verticalBlurTexture);
 	glBindTexture(GL_TEXTURE_2D, verticalBlurTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 1280, 720, 0, GL_RED, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -461,7 +469,7 @@ void PicFlipFluid::Render() {
 	int kernelSize = 7;
 	float distance = glm::length(cam.worldPosition);
 	float normalizedDistance = Clamp01(distance / 20);
-	float kernelSizeFloat = glm::lerp(15.0f, 3.0f, normalizedDistance);
+	float kernelSizeFloat = lerp(15.0f, 3.0f, normalizedDistance);
 	kernelSize = (int)kernelSizeFloat;
 	
 	glUseProgram(blurDepthShader);
@@ -471,14 +479,14 @@ void PicFlipFluid::Render() {
 	glUniform1i(glGetUniformLocation(blurDepthShader, "kernelSize"),kernelSize);
 	
 
-	glDispatchCompute(1280 / 32 + 1, 720/32 + 1, 1);
+	glDispatchCompute(windowWidth / 32 + 1, windowHeight/32 + 1, 1);
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	// //Blur depth
 	glBindImageTexture(0, horizontalBlurTexture, 0, GL_FALSE, 0, GL_READ_WRITE , GL_R32F);
 	glBindImageTexture(1, verticalBlurTexture, 0, GL_FALSE, 0, GL_READ_WRITE , GL_R32F);
 	glUniform2iv(glGetUniformLocation(blurDepthShader, "direction"),1, glm::value_ptr(glm::ivec2(0, 1)));
 	glUniform1i(glGetUniformLocation(blurDepthShader, "kernelSize"),kernelSize);
-	glDispatchCompute(1280 / 32 + 1, 720/32 + 1, 1);
+	glDispatchCompute(windowWidth / 32 + 1, windowHeight/32 + 1, 1);
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	glUseProgram(quadShader.programShaderObject);

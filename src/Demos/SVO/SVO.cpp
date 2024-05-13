@@ -1,14 +1,15 @@
 #include "SVO.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 
 #define BUILD_CPU 0
 

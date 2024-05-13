@@ -1,14 +1,15 @@
 #include "SSDO.hpp"
 
-#include "GL/glew.h"
-#include <glm/gtx/quaternion.hpp>
-
+#include <glad/gl.h>
+#define GLM_ENABLE_EXPERIMENTAL
+ 
 #include "GL_Helpers/Util.hpp"
 #include <fstream>
 #include <sstream>
 #include <random>
 
 #include "imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 
 SSDO::SSDO() {
 }
@@ -45,7 +46,6 @@ void SSDO::Load() {
     }
 
     dragon = MeshFromFile("resources/models/dragon/dragon.obj", false, 0);
-    dragon->SetScale(glm::vec3(10, 10, 10));
     dragon->SetPos(glm::vec3(0, 2, 0));
     Meshes.push_back(dragon);
     GL_Material *mat = new GL_Material();
@@ -100,7 +100,7 @@ void SSDO::InitGeometryBuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE_ARB);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
