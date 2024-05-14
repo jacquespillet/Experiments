@@ -65,7 +65,7 @@ A little tool to view spherical harmonics that I built while [reading](https://3
 
 An implementation of bitonic sort using compute shaders, with a little visualization.
 
-![BitonicSort]()
+![BitonicSort](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Sort.gif?raw=true)
 
 
 ## [N-Bodies]()
@@ -99,7 +99,7 @@ This is an implementation of an ocean simulation with fourier transform, based o
 [Here]() is a little write up about the implementation
 
 ![OceanFFT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Ocean.png?raw=true)
-![OceanFFT]()
+![OceanFFT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/OceanFFT_1.gif?raw=true)
 
 
 ## [Pic Flip Fluid]()
@@ -108,10 +108,15 @@ This is an implementation of Pic-Flip fluid simulation
 
 [Here]()'s a little write up about the implementation
 
-![PicFlip]()
-![PicFlip]()
-![PicFlip]()
-![PicFlip]()
+
+<div style="display: grid; grid-template-columns: auto auto auto;">
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_0.gif?raw=true)
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_1.gif?raw=true)
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_2.gif?raw=true)
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_3.gif?raw=true)
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_4.gif?raw=true)
+  ![Image 1](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_5.gif?raw=true)
+</div>
 
 ## [Decals](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Decals.png?raw=true)
 
@@ -119,7 +124,7 @@ This is an implementation of deferred decals.
 
 [Here]()'s a little write up about the implementation
 
-![PicFlip]()
+![Decals](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Decals.png?raw=true)
 
 
 ## [Path Tracer]()
