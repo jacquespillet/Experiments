@@ -188,8 +188,8 @@ void CSM::Load() {
     cam = GL_Camera(glm::vec3(0, 10, 0));  
     InitCSM();
 
-    // MeshesFromFile("resources/models/rungholt/rungholt.obj", &Meshes, &Materials);
-    MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
+    MeshesFromFile("resources/models/rungholt/rungholt.obj", &Meshes, &Materials);
+    // MeshesFromFile("resources/models/Sponza_gltf/glTF/Sponza.gltf", &Meshes, &Materials);
 
     for(int i=0; i<Meshes.size(); i++)
     {

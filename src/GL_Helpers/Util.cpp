@@ -69,6 +69,7 @@ GL_Mesh *MeshFromFile(std::string filename, bool swapYZ, int subMeshIndex) {
     }
 
     GL_Mesh *gl_mesh = new GL_Mesh(vertices, triangles);
+    gl_mesh->modelMatrix = glm::mat4(1);
     // processNode(scene->mRootNode, scene, vertex, normals, uv, colors, triangles);
     
     return gl_mesh;
@@ -225,6 +226,7 @@ void MeshesFromFile(std::string filename, std::vector<GL_Mesh*>* OutMeshes, std:
 
         GL_Mesh *gl_mesh = new GL_Mesh(vertices, triangles);
         gl_mesh->material = (*OutMaterials)[mesh->mMaterialIndex];
+        gl_mesh->modelMatrix = glm::mat4(1.0f);
   
         OutMeshes->push_back(gl_mesh);
     }

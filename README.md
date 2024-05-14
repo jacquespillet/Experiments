@@ -41,11 +41,6 @@ Here's a little write up about that technique and its implementation.
 ![VXGI](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/VXGI_1.png?raw=true)
 ![VXGI](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/VXGI_0.png?raw=true)
 
-## [Reflective Shadow Map]()
-
-This is a failed attempt at implementing this technique. I'm not sure why it's not working, I may try to fix it later.
-
-
 ## [Global Illumination with Light Propagation Volumes]()
 
 This is an incomplete implementation of Light Propagation Volumes. 
@@ -167,16 +162,6 @@ Chromatic Aberation
 ![CA](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_ChromaticAberation.png?raw=true)
 
 
-
-
-## [Order Independant Transparency]()
-
-Implementation of order independant transparency, based on [LearnOpenGL](https://learnopengl.com/)'s
-
-Not sure if it's fully working...
-
-![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/OIT.png?raw=true)
-
 Depth Of Field
 
 ![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_DOFpng.png?raw=true)
@@ -198,6 +183,13 @@ Sharpen Filter
 ![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_Sharpenpng.png?raw=true)
 
 
+## [Order Independant Transparency]()
+
+Implementation of order independant transparency, based on [LearnOpenGL](https://learnopengl.com/)'s
+
+Not sure if it's fully working...
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/OIT.png?raw=true)
 
 ## [Cascaded Shadow Mapping]()
 
@@ -209,7 +201,7 @@ Implementation of cascaded shadow mapping, based on [LearnOpenGL](https://learno
 
 Implementation of Shell Fur algorithm.
 
-![ShellFur]()
+![ShellFur](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/ShellFure.png?raw=true)
 
 ## [Sparse Virtual Texturing]()
 
@@ -223,12 +215,46 @@ Implementation of Screen Space Directional Occlusion.
 
 I don't know if it's really working, getting odd results..
 
-![SSDO]()
-
+![SSDO](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SSDO.png?raw=true)
 
 
 ## [Subdivision Surface]()
 
+Implementation of Subdivision Surface algorithm.
+
+<table>
+  <tr>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Subdiv_0.png?raw=true" alt="Image 1"></td>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Subdiv_1.png?raw=true" alt="Image 1"></td>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Subdiv_2.png?raw=true" alt="Image 1"></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Subdiv_3.png?raw=true" alt="Image 1"></td>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Subdiv_4.png?raw=true" alt="Image 1"></td>
+  </tr>
+</table>
+
 ## [Sparse Voxel Octree]()
 
+Implementation of sparse voxel octree construction on the GPU.
+
+![RSM](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SVO.png?raw=true)
+
 ## [Kuwahara Filtering]()
+
+Implementation of Kuwahara Filter for images
+
+<table>
+  <tr>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Kuwahara.png?raw=true" alt="Image 1"></td>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Kuwahara_1.png?raw=true" alt="Image 1"></td>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Kuwahara_2.png?raw=true" alt="Image 1"></td>
+  </tr>
+</table>
+
+## [Reflective Shadow Map]()
+
+This is a failed attempt at implementing this technique. I'm not sure why it's not working, I may try to fix it later.
+
+
+![RSM](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/RSM.png?raw=true)

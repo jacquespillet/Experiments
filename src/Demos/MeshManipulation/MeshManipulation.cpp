@@ -44,7 +44,7 @@ int SubdivModel::GetVertexIndex(const glm::vec3 &position)
     int lastIndex= static_cast<int>(vertices.size());
 
     
-    SubdivVertex newVertRecord;
+    SubdivVertex newVertRecord = {};
     newVertRecord.position = position;
     vertices.push_back(newVertRecord);
     positionToVertex[position] = lastIndex;
@@ -65,7 +65,7 @@ int SubdivModel::GetEdgeIndex(const glm::ivec2& vertexPair)
 
     int lastIndex = static_cast<int>(edges.size());
 
-    SubdivEdge newEdge;
+    SubdivEdge newEdge = {};
     newEdge.lowVertex = sortedVertexPair.x;
     newEdge.highVertex = sortedVertexPair.y;
     edges.push_back(newEdge);
@@ -82,7 +82,7 @@ void MeshManipulation::Load() {
     MeshShader = GL_Shader("shaders/MeshManipulation/MeshShader.vert", "", "shaders/MeshManipulation/MeshShader.frag");
     WireframeShader = GL_Shader("shaders/MeshManipulation/MeshShader.vert", "", "shaders/MeshManipulation/WireframeShader.frag");
 
-    MeshesFromFile("resources/models/suzanne/Suzanne.gltf", &Meshes, &Materials);
+    MeshesFromFile("resources/models/suzanne/Suzanne.obj", &Meshes, &Materials);
     
     lightDirection = glm::normalize(glm::vec3(0, -1, 1));
 
@@ -134,7 +134,7 @@ SubdivModel MeshManipulation::PrepareMesh(GL_Mesh *mesh)
         }
         
         //Create a face
-        SubdivFace newFace;
+        SubdivFace newFace = {};
         
         //Sets the vertex indices of the face
         for(int j=0; j<3; j++)
@@ -182,7 +182,7 @@ GL_Mesh *MeshManipulation::ApplySubdivision(SubdivModel& model)
         auto &f = model.faces[i];
         int vertexCount=3;
 
-        glm::vec3 vertexSum;
+        glm::vec3 vertexSum(0);
         for(int j=0; j<3; j++)
         {
             vertexSum += model.vertices[f.vertices[j]].position;
@@ -231,7 +231,7 @@ GL_Mesh *MeshManipulation::ApplySubdivision(SubdivModel& model)
         
 
         //Calculate the average position of each face that share this vertex
-        glm::vec3 averageFacePosition;
+        glm::vec3 averageFacePosition(0);
         for(auto fi : v.faces)
         {
             averageFacePosition += faceCentroids[fi];
@@ -239,7 +239,7 @@ GL_Mesh *MeshManipulation::ApplySubdivision(SubdivModel& model)
         averageFacePosition /= static_cast<float>(n);
 
         //Calculate the average position of each edge that share this vertex
-        glm::vec3 averageEdgeMid;
+        glm::vec3 averageEdgeMid(0);
         for(auto edgeIndex : v.edges)
         {
             auto &edge = model.edges[edgeIndex];
@@ -252,6 +252,7 @@ GL_Mesh *MeshManipulation::ApplySubdivision(SubdivModel& model)
         
         //Moves the vertex in the outModel
         model.MoveVertex(static_cast<int>(i), newPosition);
+        int l = 0;
     }
 
     //Clears the mesh data
@@ -365,7 +366,8 @@ void MeshManipulation::Render() {
                     
             glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "normalTextureSet"), (int)normalTextureSet);
             glUniform1i(glGetUniformLocation(MeshShader.programShaderObject, "specularTextureSet"), (int)specularTextureSet);
-            
+    
+    
             Meshes[i]->Render(cam, MeshShader.programShaderObject);
         }
 

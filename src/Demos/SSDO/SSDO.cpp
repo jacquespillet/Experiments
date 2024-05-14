@@ -46,7 +46,7 @@ void SSDO::Load() {
     }
 
     dragon = MeshFromFile("resources/models/dragon/dragon.obj", false, 0);
-    dragon->SetPos(glm::vec3(0, 2, 0));
+    dragon->SetPos(glm::vec3(0, 0, 0));
     Meshes.push_back(dragon);
     GL_Material *mat = new GL_Material();
     mat->diffuse = glm::vec3(1,0,0);

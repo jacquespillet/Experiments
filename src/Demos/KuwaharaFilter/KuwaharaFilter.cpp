@@ -140,7 +140,7 @@ void KuwaharaFilter::Load() {
     tci.srgb=true;
     tci.minFilter = GL_LINEAR;
     tci.magFilter = GL_LINEAR;
-    texture = GL_Texture("resources/textures/KuwaharaFilter/image.png", tci);
+    texture = GL_Texture("resources/textures/KuwaharaFilter/image.jpg", tci);
     Quad = GetQuad();
 
     
