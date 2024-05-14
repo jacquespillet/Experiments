@@ -113,10 +113,12 @@ This is an implementation of Pic-Flip fluid simulation
   <tr>
     <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_0.gif?raw=true" alt="Image 1"></td>
     <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_1.gif?raw=true" alt="Image 1"></td>
-    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_2.gif?raw=true" alt="Image 1"></td>
   </tr>
   <tr>
+    <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_2.gif?raw=true" alt="Image 1"></td>
     <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_3.gif?raw=true" alt="Image 1"></td>
+  </tr>
+  <tr>
     <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_4.gif?raw=true" alt="Image 1"></td>
     <td><img src="https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/Fluid_5.gif?raw=true" alt="Image 1"></td>
   </tr>
