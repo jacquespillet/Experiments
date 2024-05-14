@@ -148,23 +148,84 @@ This is an implementation of Clustered and Forward+ rendering, with performance 
 
 ## [Screen Space Ambient Occlusion]()
 
+Simple implementation of SSAO, based on [LearnOpenGL](https://learnopengl.com/)'s
+
 ![SSAO](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SSAO_1.png?raw=true)
 
 ## [Screen Space Reflections]()
 
+Simple implementation of screen space reflections, without fallback for out of screen reflections.
+
+![SSR](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/SSR_1.png?raw=true)
+
+## [Post Processing]()
+
+Some simple post processing effects : 
+
+Chromatic Aberation
+
+![CA](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_ChromaticAberation.png?raw=true)
+
+
+
+
 ## [Order Independant Transparency]()
+
+Implementation of order independant transparency, based on [LearnOpenGL](https://learnopengl.com/)'s
+
+Not sure if it's fully working...
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/OIT.png?raw=true)
+
+Depth Of Field
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_DOFpng.png?raw=true)
+
+CRT Effects
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_CRT.png?raw=true)
+
+God Rays
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_GodRayspng.png?raw=true)
+
+Vignette
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_Vignettepng.png?raw=true)
+
+Sharpen Filter
+
+![OIT](https://github.com/jacquespillet/Experiments/blob/master/resources/Gallery/PostProcessing_Sharpenpng.png?raw=true)
+
+
 
 ## [Cascaded Shadow Mapping]()
 
+Implementation of cascaded shadow mapping, based on [LearnOpenGL](https://learnopengl.com/)'s
+
+
+
 ## [Shell Fur]()
+
+Implementation of Shell Fur algorithm.
+
+![ShellFur]()
 
 ## [Sparse Virtual Texturing]()
 
+Implementation of Sparse Virtual Textures. It's almost working, just a problem to solve on the edges of the sub textures.
+
+![SVT]()
+
 ## [Screen Space Directional Occlusion]()
 
-## [Screen Space Subsurface Scattering]()
+Implementation of Screen Space Directional Occlusion.
 
-## [Post Processing]()
+I don't know if it's really working, getting odd results..
+
+![SSDO]()
+
+
 
 ## [Subdivision Surface]()
 
