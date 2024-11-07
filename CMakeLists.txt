@@ -69,7 +69,7 @@ set (sourceFiles
         src/GL_Helpers/Util.cpp
         src/Demos/VXGI/VXGI.cpp src/Demos/RSM/RSM.cpp src/Demos/ISM/ISM.cpp src/Demos/LPV/LPV.cpp src/Demos/SH/SH.cpp src/Demos/BitonicSort/BitonicSort.cpp src/Demos/Template/Template.cpp
         src/Demos/NBodies/NBodies.cpp src/Demos/FFT/FFT.cpp  src/Demos/Ocean_FFT/Ocean_FFT.cpp  src/Demos/PicFlipFluid/PicFlipFluid.cpp 
-        src/Demos/DeferredDecals/DeferredDecals.cpp src/Demos/PathTracer/PathTracer.cpp  src/Demos/Boids/Boids.cpp  src/Demos/TiledRendering/TiledRendering.cpp 
+        src/Demos/DeferredDecals/DeferredDecals.cpp src/Demos/PathTracer/PathTracer.cpp  src/Demos/SVGF/SVGF.cpp  src/Demos/Boids/Boids.cpp  src/Demos/TiledRendering/TiledRendering.cpp 
         src/Demos/SSAO/SSAO.cpp src/Demos/SSR/SSR.cpp  src/Demos/OIT/OIT.cpp  src/Demos/CSM/CSM.cpp  src/Demos/ShellFur/ShellFur.cpp   src/Demos/DispMapping/DispMapping.cpp 
         src/Demos/SVT/SVT.cpp src/Demos/SSDO/SSDO.cpp src/Demos/KuwaharaFilter/KuwaharaFilter.cpp  src/Demos/SSSS/SSSS.cpp src/Demos/PostProcessing/PostProcessing.cpp src/Demos/SVO/SVO.cpp src/Demos/MeshManipulation/MeshManipulation.cpp
         ${GLAD_SOURCE}

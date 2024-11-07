@@ -25,6 +25,7 @@
 #include "Demos/PicFlipFluid/PicFlipFluid.hpp"
 #include "Demos/DeferredDecals/DeferredDecals.hpp"
 #include "Demos/PathTracer/PathTracer.hpp"
+#include "Demos/SVGF/SVGF.hpp"
 #include "Demos/Template/Template.hpp"
 #include "Demos/Boids/Boids.hpp"
 #include "Demos/TiledRendering/TiledRendering.hpp"
@@ -221,6 +222,12 @@ struct DemoManager {
             demo->windowHeight = windowHeight;
             demo->Load();
             break;
+        case 28:
+            demo = new SVGF;
+            demo->windowWidth = windowWidth;
+            demo->windowHeight = windowHeight;
+            demo->Load();
+            break;            
         default:
             break;
         }
@@ -525,6 +532,10 @@ private:
         if(ImGui::Button("Mesh Manipulation")) {
             demoManager.ClearDemo();
             demoManager.LoadDemo(27);
+        }
+        if(ImGui::Button("SVGF")) {
+            demoManager.ClearDemo();
+            demoManager.LoadDemo(28);
         }
 
         ImGui::Text("WIP"); 
